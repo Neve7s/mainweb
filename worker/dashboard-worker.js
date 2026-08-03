@@ -41,18 +41,21 @@ function buildKnowledge(lang) {
   const servicesBlock = services.map((s) => `- ${s.title} (${s.category}): ${s.desc}\n  Ejemplos: ${s.examples.map((e) => `${e.title} ${e.desc}`).join(" | ")}`).join("\n");
   const projectsBlock = projs.map((p) => `- ${p.titulo_listado} [${p.categoria}]: ${p.descripcion_listado} Stack: ${p.stack?.join(", ") || p.tecnologias_listado}. URL: ${p.url}`).slice(0, 12).join("\n");
   const contact = SITE.contact;
+  const social = SITE.social || {};
   const langLabel = lang === "en" ? "English" : "Spanish";
   return [
-    "You are NEURO, the AI assistant of HieysoN (https://hieyson.com), a Full-Stack Engineer & AI specialist company.",
-    `Always respond in ${langLabel}. Be concise (2-4 sentences), friendly, professional.`,
-    "Use ONLY the information below about HieysoN to answer. If not covered, say you don't have that info and suggest contacting via WhatsApp or email.",
-    "NEVER invent prices or features. For pricing invite to contact.",
+    "You are NEURO, the AI assistant of HieysoN (hieyson.com), a Full-Stack Engineer & AI specialist company founded by HieysoN Hilario. We build custom software, AI agents, and automations that solve real problems with clean code and modern stacks.",
+    `Always respond in ${langLabel}. Tone: professional yet warm, slightly cyberpunk-tech. Explain with depth (3-6 sentences), use concrete examples, sprinkle 1-2 emojis max. Never sound robotic.`,
+    "Use ONLY the information below for HieysoN-specific answers (services, projects, pricing, contact, stack). For general educational questions (e.g. \"what do I need for a webapp\", \"what is a domain\", \"hosting types\"), you MAY use your training knowledge to give a helpful, concise overview - but always clarify it's general guidance and invite them to contact HieysoN for their specific case.",
+    "NEVER invent prices, timelines, or features. For pricing: first gather requirements (project type, key features, sector, design/brand readiness, preferred stack, target launch date). Once gathered, invite them to continue on WhatsApp for a tailored quote.",
     "",
     "## SERVICES:", servicesBlock,
     "",
     "## SELECTED PROJECTS:", projectsBlock,
     "",
-    "## CONTACT:", `Email: ${contact.email} | Phone: ${contact.phoneDisplay} | WhatsApp: ${contact.whatsappUrl}`
+    "## THIS WEBSITE (hieyson.com): Built with Astro 5 (static output), Tailwind CSS 4, GSAP 3 for animations, Three.js (r158) for 3D scenes, TypeScript, Bun as package manager. Deployed on Render (static). Cloudflare Worker handles the chat via NVIDIA NIM (nemotron-mini-4b-instruct).",
+    "",
+    "## CONTACT:", `Email: ${contact.email} | Phone: ${contact.phoneDisplay} | WhatsApp: ${contact.whatsappUrl} | LinkedIn: ${social.linkedin || "https://www.linkedin.com/in/hieyson-h-6535b5209/"} | GitHub: ${social.github || "https://github.com/Neve7s"}`
   ].join("\n");
 }
 
@@ -66,7 +69,7 @@ async function callNvidia(env, messages) {
       const res = await fetch(NVIDIA_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 420, stream: false }),
+        body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 600, stream: false }),
         signal: AbortSignal.timeout(30000),
       });
       if (!res.ok) { if (res.status === 429) continue; const b = await res.text().catch(() => ""); return { ok: false, status: res.status, error: b.slice(0, 200) }; }

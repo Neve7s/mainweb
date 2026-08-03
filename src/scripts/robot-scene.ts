@@ -380,8 +380,21 @@ export function initRobotScene(options?: { forceShow?: boolean }) {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
-    const s = THREE.MathUtils.clamp(Math.min(w, h * 1.15) / 760, 0.5, 0.95);
-    modelGroup.scale.setScalar(s);
+
+    // Adjust scale based on screen width for mobile responsiveness
+    if (window.innerWidth < 768) {
+      modelGroup.scale.setScalar(0.65); // Make it larger to fill space
+      camera.position.set(0, 3.0, 15); // Move camera closer
+      // We'll set the Y position in animate to -1.5
+    } else if (window.innerWidth < 1024) {
+      modelGroup.scale.setScalar(0.50);
+      camera.position.set(0, 3, 16);
+      modelGroup.position.y = 0;
+    } else {
+      modelGroup.scale.setScalar(0.7);
+      camera.position.set(0, 2.5, 12);
+      modelGroup.position.y = 0;
+    }
   }
   resize();
   window.addEventListener('resize', resize);
@@ -393,7 +406,9 @@ export function initRobotScene(options?: { forceShow?: boolean }) {
     raf = requestAnimationFrame(animate);
     const elapsed = clock.getElapsedTime();
 
-    modelGroup.position.y = Math.sin(elapsed * 0.9) * 0.04;
+    const breathe = Math.sin(elapsed * 0.9) * 0.04;
+    const baseOffset = window.innerWidth < 768 ? -1.8 : 0;
+    modelGroup.position.y = baseOffset + breathe;
 
     floorRing.rotation.z = elapsed * 0.25;
     floorRing2.rotation.z = -elapsed * 0.16;

@@ -55,6 +55,7 @@
   "chat.placeholder": "Type your message...",
   "chat.send": "Send",
   "chat.close": "Close chat",
+  "chat.clear": "Clear chat",
   "chat.typing": "NOSYEIH is typing...",
   "chat.error": "Oops, I couldn't reach the AI. Please try again.",
   "chat.retry": "Retry",

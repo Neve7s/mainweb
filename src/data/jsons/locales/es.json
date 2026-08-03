@@ -56,6 +56,7 @@
   "chat.placeholder": "Escribe tu mensaje...",
   "chat.send": "Enviar",
   "chat.close": "Cerrar chat",
+  "chat.clear": "Limpiar chat",
   "chat.typing": "NOSYEIH está escribiendo...",
   "chat.error": "Ups, no pude conectar con la IA. Intenta de nuevo.",
   "chat.retry": "Reintentar",
