@@ -1,0 +1,44 @@
+# build output
+dist/
+
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+worker/node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment variables (secrets — NEVER commit)
+.env
+.env.*
+!.env.example
+
+# worker local secrets + caches
+worker/.dev.vars
+.wrangler/
+.wrangler.tmp/
+
+# leftover scaffold (real page lives in src/pages/caballo-de-ajedrez-3d.astro)
+caballo-de-ajedrez-3d/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# opencode / AI tools
+.opencode/
+opencode.json*
+AGENTS.md
+CLAUDE.md
+
+# vercel
+.vercel/

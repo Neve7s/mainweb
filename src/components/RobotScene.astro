@@ -1,0 +1,16 @@
+---
+// Three.js 3D Robot Scene — renders behind hero text
+interface Props {
+  forceShow?: boolean;
+}
+const { forceShow = false } = Astro.props;
+---
+
+<canvas id="robot-canvas" data-force-show={`${forceShow}`} class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+<script>
+  import { initRobotScene } from '../scripts/robot-scene';
+  const canvas = document.getElementById('robot-canvas') as HTMLCanvasElement;
+  const forceShow = canvas?.dataset.forceShow === 'true';
+  initRobotScene({ forceShow });
+</script>

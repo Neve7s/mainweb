@@ -1,0 +1,204 @@
+---
+// NeuralCanvas.astro - Exact replica of original initNeuralNetwork() from utils.js
+---
+
+<div id="neural-canvas-container" class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+  <canvas id="neural-canvas"></canvas>
+</div>
+
+<script>
+  function initNeuralNetwork() {
+    const canvas = document.getElementById('neural-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let width: number;
+    let height: number;
+    let particles: Particle[] = [];
+    const isMobile = window.innerWidth < 768;
+    const connectionDistance = isMobile ? 100 : 150;
+    const connectionDistanceSq = connectionDistance * connectionDistance;
+    const mouseRadius = 200;
+    const mouseRadiusSq = mouseRadius * mouseRadius;
+
+    let mouse = {
+      x: null as number | null,
+      y: null as number | null,
+      radius: mouseRadius
+    };
+
+    if (!isMobile) {
+      window.addEventListener('mousemove', function(event) {
+        mouse.x = event.x;
+        mouse.y = event.y;
+      });
+      window.addEventListener('mouseout', function() {
+        mouse.x = null;
+        mouse.y = null;
+      });
+    }
+
+    let resizeTimeout: ReturnType<typeof setTimeout>;
+    function resizeCanvas() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        initParticles();
+      }, 200);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    let cachedIsDark = document.documentElement.classList.contains('dark');
+    let themeChanged = false;
+
+    const themeObserver = new MutationObserver(() => {
+      themeChanged = true;
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    const getThemeColors = () => {
+      if (themeChanged) {
+        cachedIsDark = document.documentElement.classList.contains('dark');
+        themeChanged = false;
+      }
+      return cachedIsDark;
+    };
+
+    class Particle {
+      x: number;
+      y: number;
+      dx: number;
+      dy: number;
+      size: number;
+
+      constructor(x: number, y: number, dx: number, dy: number, size: number) {
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
+        this.size = size;
+      }
+
+      update() {
+        if (this.x > width || this.x < 0) this.dx = -this.dx;
+        if (this.y > height || this.y < 0) this.dy = -this.dy;
+
+        this.x += this.dx;
+        this.y += this.dy;
+
+        if (!isMobile && mouse.x != null && mouse.y != null) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < mouseRadiusSq) {
+            const dist = Math.sqrt(distSq);
+            const force = 1 / dist;
+            this.x += dx * force;
+            this.y += dy * force;
+          }
+        }
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      const densityFactor = isMobile ? 24000 : 12000;
+      const numParticles = Math.min((width * height) / densityFactor, isMobile ? 80 : 180);
+
+      for (let i = 0; i < numParticles; i++) {
+        let size = (Math.random() * 1.5) + 0.5;
+        let x = Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2;
+        let y = Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2;
+        let dx = (Math.random() - 0.5) * 0.4;
+        let dy = (Math.random() - 0.5) * 0.4;
+
+        particles.push(new Particle(x, y, dx, dy, size));
+      }
+    }
+
+    function connectParticles(isDark: boolean) {
+      const lineRgb = isDark ? '255, 255, 255' : '0, 0, 0';
+      const lineAlpha = isDark ? 0.15 : 0.4;
+      const mouseRgb = isDark ? '150, 200, 255' : '15, 23, 42';
+      const mouseAlpha = isDark ? 0.4 : 0.6;
+      const mouseConnRadiusSq = mouseRadius * mouseRadius;
+
+      // Batch particle-to-particle lines by opacity buckets
+      ctx.lineWidth = 1;
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a + 1; b < particles.length; b++) {
+          const dx = particles[a].x - particles[b].x;
+          const dy = particles[a].y - particles[b].y;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < connectionDistanceSq) {
+            const opacity = (1 - distSq / connectionDistanceSq) * lineAlpha;
+            ctx.strokeStyle = `rgba(${lineRgb}, ${opacity})`;
+            ctx.beginPath();
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Mouse connections - batch
+      if (!isMobile && mouse.x != null && mouse.y != null) {
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let a = 0; a < particles.length; a++) {
+          const mx = particles[a].x - mouse.x;
+          const my = particles[a].y - mouse.y;
+          const mDistSq = mx * mx + my * my;
+
+          if (mDistSq < mouseConnRadiusSq) {
+            const opacity = (1 - mDistSq / mouseConnRadiusSq) * mouseAlpha;
+            ctx.strokeStyle = `rgba(${mouseRgb}, ${opacity})`;
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(mouse.x, mouse.y);
+          }
+        }
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
+    }
+
+    function animate() {
+      const isDark = getThemeColors();
+      requestAnimationFrame(animate);
+      ctx.clearRect(0, 0, width, height);
+
+      // Update all particles (draw happens here too)
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+
+        ctx.beginPath();
+        ctx.arc(particles[i].x, particles[i].y, particles[i].size, 0, Math.PI * 2, false);
+        ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.8)';
+        ctx.fill();
+      }
+
+      connectParticles(isDark);
+    }
+
+    resizeCanvas();
+    animate();
+  }
+
+  initNeuralNetwork();
+</script>
+
+<style>
+  #neural-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>

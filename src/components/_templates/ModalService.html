@@ -1,0 +1,74 @@
+<div class="modal-inner-content p-2 md:p-4">
+    <!-- Top Horizontal Navigation Tabs -->
+    <div class="flex flex-wrap items-center justify-center gap-2 mb-8 pb-6 border-b border-light-border dark:border-dark-border">
+        <button data-service-tab="s1" class="text-[10px] font-mono tracking-widest uppercase px-4 py-2 border rounded-full transition-all duration-300">
+            Software
+        </button>
+        <button data-service-tab="s2" class="text-[10px] font-mono tracking-widest uppercase px-4 py-2 border rounded-full transition-all duration-300">
+            Agentes IA
+        </button>
+        <button data-service-tab="s3" class="text-[10px] font-mono tracking-widest uppercase px-4 py-2 border rounded-full transition-all duration-300">
+            Automatización
+        </button>
+        <button data-service-tab="s4" class="text-[10px] font-mono tracking-widest uppercase px-4 py-2 border rounded-full transition-all duration-300">
+            Sistemas B2B
+        </button>
+    </div>
+
+    <!-- Category / Indicator -->
+    <div class="flex items-center gap-3 mb-4">
+        <span class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted opacity-80">{{category}}</span>
+    </div>
+    
+    <!-- Human Title -->
+    <h2 class="text-xl md:text-3xl font-display font-bold uppercase leading-tight tracking-tighter mb-6 text-light-accent dark:text-white max-w-4xl">
+        {{human_title}}
+    </h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Friendly Intro -->
+            <p class="text-sm md:text-base text-gray-600 dark:text-gray-300 font-light leading-relaxed">
+                {{desc}}
+            </p>
+            
+            <!-- Practical Examples -->
+            <div>
+                <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted border-b border-light-border dark:border-dark-border pb-2 mb-6 opacity-70">{{examples_title}}</h3>
+                <div class="space-y-6">
+                    {{examples_html}}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar / Action Center -->
+        <div class="space-y-6">
+            <div class="p-6 bg-light-800 dark:bg-dark-900/50 border border-light-border dark:border-dark-border flex flex-col justify-between h-full space-y-6">
+                <div>
+                    <h4 class="text-xs font-mono tracking-wider uppercase text-light-accent dark:text-white mb-2">{{cta_heading}}</h4>
+                    <p class="text-xs text-light-muted dark:text-dark-muted font-light leading-relaxed">
+                        {{cta_desc}}
+                    </p>
+                </div>
+
+                <button id="request-service-btn" class="w-full flex justify-center items-center py-3.5 bg-light-accent text-white dark:bg-white dark:text-black text-[10px] font-mono uppercase tracking-[0.2em] hover:bg-light-accent/90 dark:hover:bg-white/90 transition-all active:scale-[0.98] group">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 mr-2"></i>
+                    <span>{{cta_button}}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Buttons -->
+    <div class="flex items-center justify-between pt-8 mt-12 border-t border-light-border dark:border-dark-border">
+        <button id="prev-service-btn" class="flex items-center text-[10px] font-mono uppercase tracking-widest text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors group">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform"></i>
+            <span data-i18n="services.prev">Anterior</span>
+        </button>
+        <button id="next-service-btn" class="flex items-center text-[10px] font-mono uppercase tracking-widest text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors group">
+            <span data-i18n="services.next">Siguiente</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"></i>
+        </button>
+    </div>
+</div>

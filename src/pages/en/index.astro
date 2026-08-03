@@ -1,0 +1,97 @@
+---
+export const prerender = true;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Hero from '../../components/Hero.astro';
+import Expertise from '../../components/Expertise.astro';
+import Projects from '../../components/Projects.astro';
+import TechStack from '../../components/TechStack.astro';
+import Clients from '../../components/Clients.astro';
+import Testimonials from '../../components/Testimonials.astro';
+import Footer from '../../components/Footer.astro';
+import WhatsAppButton from '../../components/WhatsAppButton.astro';
+import Chatbot from '../../components/Chatbot.astro';
+import GlobalModal from '../../components/GlobalModal.astro';
+import ServiceModal from '../../components/ServiceModal.astro';
+import ProjectModal from '../../components/ProjectModal.astro';
+import NeuralCanvas from '../../components/NeuralCanvas.astro';
+
+import en from '../../data/jsons/locales/en.json';
+
+const t = en;
+---
+
+<BaseLayout
+  title="HieysoN - Smart Software, AI Agents & Automations"
+  description="Full-Stack Engineer & AI Specialist. We build digital ecosystems, AI Agents, and B2B automations with n8n to scale your business."
+  lang="en"
+  canonicalURL="https://hieyson.com/en/"
+>
+  <!-- Neural Canvas (Desktop only) -->
+  <NeuralCanvas />
+
+  <!-- Grain Overlay for Texture -->
+  <div class="fixed inset-0 pointer-events-none z-0 opacity-[0.05] dark:opacity-[0.03]"
+    style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');"></div>
+
+  <!-- Layout Wrapper -->
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <Header t={t} />
+    
+    <main class="flex-grow">
+      <Hero t={t} />
+      <Expertise t={t} />
+      <Projects t={t} />
+      <TechStack t={t} />
+      <Clients t={t} />
+      <Testimonials t={t} />
+    </main>
+
+    <Footer t={t} />
+  </div>
+
+  <WhatsAppButton />
+  <Chatbot t={t} />
+
+  <GlobalModal />
+  <ServiceModal lang="en" />
+  <ProjectModal lang="en" />
+</BaseLayout>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  import { initButtonEffects } from '../../scripts/button-effects';
+  import { initScrollParallax } from '../../scripts/scroll-parallax';
+  initScrollAnimations();
+  initButtonEffects();
+  initScrollParallax();
+
+  // Service card click handlers
+  document.querySelectorAll('[data-service-id]').forEach(card => {
+    card.addEventListener('click', () => {
+      const serviceId = card.getAttribute('data-service-id');
+      if (serviceId && window.renderServiceModal) {
+        window.renderServiceModal(serviceId);
+        window.openModal();
+      }
+    });
+  });
+
+  // Project card click handlers
+  document.querySelectorAll('[data-project-id]').forEach(card => {
+    card.addEventListener('click', () => {
+      const projectId = card.getAttribute('data-project-id');
+      if (projectId && window.renderProjectModal) {
+        import('../../data/jsons/Proyectos_en.json').then(mod => {
+          const projects = mod.default.proyectos || [];
+          const project = projects.find((p: any) => p.id === projectId);
+          if (project) {
+            window.renderProjectModal(project);
+            window.openModal();
+          }
+        });
+      }
+    });
+  });
+</script>

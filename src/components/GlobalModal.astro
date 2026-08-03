@@ -1,0 +1,126 @@
+---
+// GlobalModal.astro - Base modal container + Gallery overlay
+---
+
+<!-- Global Modal Container -->
+<dialog id="global-modal" class="fixed inset-0 z-[100] w-full h-full bg-transparent p-0 m-0 backdrop:bg-transparent overflow-visible">
+  <div class="fixed inset-0 bg-light-900/90 dark:bg-dark-900/90 backdrop-blur-md transition-colors duration-500 modal-overlay"></div>
+  
+  <div class="fixed inset-0 flex items-center justify-center pointer-events-none">
+    <div class="relative w-full max-w-[78.25rem] max-h-[85vh] mx-4 overflow-y-auto overflow-x-hidden bg-white dark:bg-dark-800 border border-light-border dark:border-dark-border shadow-2xl transition-all duration-500 transform scale-95 opacity-0 modal-content pointer-events-auto"
+      id="modal-content-wrapper">
+    
+    <!-- Close Button -->
+    <button id="modal-close" class="absolute top-3 right-3 text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors z-50 w-8 h-8 flex items-center justify-center border border-light-border dark:border-dark-border bg-light-900/50 dark:bg-dark-900/50 backdrop-blur-md rounded-full shadow-md">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+
+    <!-- Dynamic Content Anchor -->
+    <div id="modal-body" class="p-4 lg:p-6 min-h-[200px] overflow-x-hidden">
+      <div class="flex items-center justify-center h-full">
+        <svg class="w-8 h-8 text-light-muted dark:text-dark-muted animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+      </div>
+    </div>
+  </div>
+  </div>
+</dialog>
+
+<!-- Gallery Modal (dialog, top-layer) -->
+<dialog id="gallery-modal" class="fixed inset-0 z-[110] w-full h-full bg-transparent p-0 m-0 backdrop:bg-transparent overflow-visible" style="display:none;">
+  <div class="fixed inset-0 bg-light-900/95 dark:bg-black/95 backdrop-blur-xl transition-colors duration-500 gallery-overlay"></div>
+
+  <!-- Close button -->
+  <button id="gallery-close" onclick="window.closeGalleryModal()" class="absolute top-6 right-6 z-20 w-10 h-10 flex items-center justify-center text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors border border-light-border dark:border-dark-border bg-light-900/50 dark:bg-dark-900/50 backdrop-blur-md rounded-full">
+    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+  </button>
+
+  <!-- Gallery header -->
+  <div class="absolute top-6 left-8 z-10">
+    <h3 id="gallery-title" class="text-sm font-display font-bold uppercase tracking-tighter text-light-accent dark:text-white"></h3>
+    <span id="gallery-counter" class="text-[10px] font-mono tracking-widest text-light-muted dark:text-dark-muted mt-1 block"></span>
+  </div>
+
+  <!-- Gallery content -->
+  <div class="relative w-full h-full flex flex-col items-center justify-center pointer-events-none p-4">
+    <div class="relative w-full max-w-7xl flex items-center pointer-events-auto mt-20 md:mt-0">
+      <!-- Prev arrow -->
+      <button id="gallery-prev" class="hidden md:flex absolute left-2 z-20 w-12 h-12 bg-black/40 hover:bg-black/60 text-white rounded-full items-center justify-center transition-all backdrop-blur-sm">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+      </button>
+
+      <!-- Gallery body (horizontal scroll-snap) -->
+      <div id="gallery-body" class="w-full flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-8 p-4" style="scrollbar-width: none; -ms-overflow-style: none;">
+      </div>
+
+      <!-- Next arrow -->
+      <button id="gallery-next" class="hidden md:flex absolute right-2 z-20 w-12 h-12 bg-black/40 hover:bg-black/60 text-white rounded-full items-center justify-center transition-all backdrop-blur-sm">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+      </button>
+    </div>
+
+    <span class="absolute bottom-8 text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted opacity-50">
+      Desliza o usa Shift+Scroll
+    </span>
+  </div>
+</dialog>
+
+<script>
+  // Modal controller
+  const modal = document.getElementById('global-modal') as HTMLDialogElement;
+  const modalContent = document.getElementById('modal-content-wrapper');
+  const modalBody = document.getElementById('modal-body');
+  const closeBtn = document.getElementById('modal-close');
+  const overlay = modal?.querySelector('.modal-overlay') as HTMLElement;
+
+  function openModal() {
+    if (!modal) return;
+    modal.showModal();
+    document.body.style.overflow = 'hidden';
+    // Animate in
+    requestAnimationFrame(() => {
+      modalContent?.classList.remove('scale-95', 'opacity-0');
+      modalContent?.classList.add('scale-100', 'opacity-100');
+    });
+  }
+
+  function closeModal() {
+    if (!modal) return;
+    modalContent?.classList.add('scale-95', 'opacity-0');
+    modalContent?.classList.remove('scale-100', 'opacity-100');
+    setTimeout(() => {
+      modal.close();
+      document.body.style.overflow = '';
+      if (modalBody) modalBody.innerHTML = '';
+    }, 300);
+  }
+
+  // Close handlers
+  closeBtn?.addEventListener('click', closeModal);
+  overlay?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.open) closeModal();
+  });
+
+  // Gallery overlay click-to-close
+  const galleryModal = document.getElementById('gallery-modal') as HTMLDialogElement;
+  galleryModal?.addEventListener('click', (e) => {
+    if (e.target === galleryModal || (e.target as HTMLElement)?.classList?.contains('gallery-overlay')) {
+      if (typeof (window as any).closeGalleryModal === 'function') {
+        (window as any).closeGalleryModal();
+      }
+    }
+  });
+
+  // Expose globally
+  (window as any).openModal = openModal;
+  (window as any).closeModal = closeModal;
+  (window as any).getModalBody = () => modalBody;
+</script>
+
+<style>
+  #gallery-body::-webkit-scrollbar { display: none; }
+  #gallery-body { scrollbar-width: none; -ms-overflow-style: none; }
+</style>

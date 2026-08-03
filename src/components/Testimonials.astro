@@ -1,0 +1,70 @@
+---
+const t = Astro.props.t;
+---
+
+<section id="opinions" class="py-32 border-t border-light-border dark:border-dark-border relative transition-colors duration-500">
+  <div class="max-w-7xl mx-auto px-6 lg:px-12">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-24" data-animate>
+      <div>
+        <span class="text-xs font-mono tracking-[0.2em] text-light-muted dark:text-dark-muted uppercase mb-4 block transition-colors">{t['testimonials.num']}</span>
+        <h2 class="text-4xl md:text-5xl font-display font-bold uppercase tracking-tighter text-light-accent dark:text-white transition-colors">
+          <span>{t['testimonials.title_1']} </span><br>
+          <span class="text-light-muted dark:text-dark-muted transition-colors">{t['testimonials.title_2']}</span>
+        </h2>
+      </div>
+    </div>
+
+    <!-- Infinite CSS Marquee for Ratings -->
+    <div class="relative flex overflow-x-hidden mt-12 py-4 group">
+      <div id="ratings-grid" class="animate-marquee group-hover:[animation-play-state:paused] flex w-max items-stretch shrink-0">
+        <!-- Loaded client-side -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import ratingsData from '../data/jsons/Calificacion.json';
+
+  const grid = document.getElementById('ratings-grid');
+  if (grid) {
+    const comentarios = ratingsData.comentarios || [];
+    const isEn = document.documentElement.lang === 'en';
+    
+    const html = comentarios.map((item: any) => {
+      const initials = (item.nombre || 'U N').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+      const rating = parseInt(item.rating) || 5;
+      
+      let starsHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        const colorClass = i <= rating ? 'text-yellow-500 fill-current' : 'text-gray-300 dark:text-gray-600 fill-current';
+        starsHtml += `<svg class="w-4 h-4 ${colorClass}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+      }
+
+      const avatarHtml = item.foto 
+        ? `<img src="${item.foto}" alt="${item.nombre}" class="w-full h-full object-cover" loading="lazy" />`
+        : `<span class="initials">${initials}</span>`;
+
+      const message = isEn ? (item.mensaje_en || item.mensaje) : item.mensaje;
+
+      return `
+        <div class="flex-shrink-0 w-80 mx-3 p-6 border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 transition-colors duration-300 glow-on-hover">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-light-800 dark:bg-dark-800 flex items-center justify-center">
+              ${avatarHtml}
+            </div>
+            <div>
+              <p class="text-sm font-mono text-light-accent dark:text-white">${item.nombre || ''}</p>
+              <p class="text-[10px] font-mono text-light-muted dark:text-dark-muted">${item.Compañia || ''}</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-400 font-light leading-relaxed mb-4">"${message}"</p>
+          <div class="flex gap-1">${starsHtml}</div>
+        </div>
+      `;
+    }).join('');
+    
+    // Duplicate for infinite scroll
+    grid.innerHTML = html + html;
+  }
+</script>

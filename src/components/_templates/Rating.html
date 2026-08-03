@@ -1,0 +1,27 @@
+<!-- Components/Rating.html -->
+<div class="rating-item w-[320px] md:w-[400px] shrink-0 whitespace-normal inline-flex flex-col p-8 border border-light-border dark:border-dark-border bg-light-900/50 dark:bg-dark-900/50 hover:bg-light-800 dark:hover:bg-dark-800 transition-colors duration-300 group mx-2 md:mx-4">
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex gap-1" data-rating-stars="{{rating}}">
+            <!-- Las estrellas se inyectarán por JS según el rating -->
+        </div>
+        <i data-lucide="quote" class="w-6 h-6 text-light-muted/30 dark:text-dark-muted/30 group-hover:text-light-accent dark:group-hover:text-white transition-colors"></i>
+    </div>
+    
+    <p class="text-sm font-light leading-relaxed text-light-accent dark:text-gray-300 mb-8 flex-grow">
+        "{{mensaje}}"
+    </p>
+    
+    <div class="flex items-center gap-4 border-t border-light-border dark:border-dark-border pt-6 mt-auto">
+        <!-- Initials Avatar Fallback -->
+        <div class="w-10 h-10 shrink-0 rounded-full border border-light-border dark:border-dark-border flex items-center justify-center bg-light-800 dark:bg-dark-800 text-light-accent dark:text-white font-display text-xs font-bold uppercase overflow-hidden" data-avatar="{{foto}}" data-name="{{nombre}}">
+            <span class="initials">{{nombre_iniciales}}</span>
+        </div>
+        <div class="overflow-hidden">
+            <h4 class="text-xs font-bold uppercase tracking-widest text-light-accent dark:text-white truncate">{{nombre}}</h4>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px] hidden md:inline-block uppercase font-mono text-light-muted dark:text-dark-muted truncate">{{email}}</span>
+                <span class="text-[10px] uppercase font-mono text-light-muted dark:text-dark-muted truncate">• {{Compañia}}</span>
+            </div>
+        </div>
+    </div>
+</div>

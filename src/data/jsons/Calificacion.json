@@ -1,0 +1,26 @@
+{
+    "comentarios": [
+        {
+            "Compañia": "E&G FITNNESS SPORT S.A.C",
+            "url": "https://eygfitnnesssport.com",
+            "foto": "",
+            "nombre": "Edgar Acosta",
+            "email": "ventas@eygfitnnesssport.com",
+            "telefono": "987654321",
+            "mensaje": "Me encanto el e-commerce para mi tienda, es muy interactivo y facil de usar.",
+            "mensaje_en": "I loved the e-commerce for my store, it's very interactive and easy to use.",
+            "rating": 5
+        },
+        {
+            "Compañia": "HIGH LOG INTERNATIONAL S.A.C",
+            "url": "https://highloginternational.com",
+            "foto": "",
+            "nombre": "Nicole Cevallos",
+            "email": "operaciones@highloginternational.com",
+            "telefono": "987654321",
+            "mensaje": "Me gusta mucho como quedo mi página, tiene un diseño elegante y moderno.",
+            "mensaje_en": "I really like how my website turned out, it has an elegant and modern design.",
+            "rating": 5
+        }
+    ]
+}

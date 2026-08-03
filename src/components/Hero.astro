@@ -1,0 +1,125 @@
+---
+import CubeButton from './CubeButton.astro';
+import RobotScene from './RobotScene.astro';
+
+interface Props {
+  t: Record<string, string>;
+}
+
+const { t } = Astro.props;
+---
+
+<section id="hero" class="relative min-h-[100svh] flex items-center overflow-x-hidden">
+  <!-- Matrix rain background -->
+  <canvas id="matrix-canvas" class="absolute inset-0 w-full h-full z-0 opacity-[0.05]"></canvas>
+
+  <!-- Grid pattern overlay -->
+  <div class="absolute inset-0 z-0 grid-pattern opacity-[0.03]"></div>
+
+  <!-- Radial glow -->
+  <div class="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[560px] rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 blur-[130px] z-0 pointer-events-none"></div>
+
+  <!-- Content grid: text left / 3D knight right -->
+  <div class="relative z-10 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-10 items-center pt-28 pb-24">
+
+    <!-- Text column -->
+    <div class="flex flex-col items-center lg:items-start text-center lg:text-left">
+      <!-- Status badge -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 dark:border-emerald-400/25 bg-emerald-500/[0.06] dark:bg-emerald-400/[0.06] mb-6" data-scroll-reveal="up" style="--scroll-delay: 0.05s">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
+        <span class="text-[11px] font-mono uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400/90">{t['hero.badge']}</span>
+      </div>
+
+      <!-- Overline -->
+      <p class="text-[11px] sm:text-xs font-mono uppercase tracking-[0.3em] text-light-muted dark:text-white/40 mb-3" data-scroll-reveal="up" style="--scroll-delay: 0.1s">
+        {t['hero.tagline']}
+      </p>
+
+      <!-- Headline -->
+      <h1 class="font-display text-[1.75rem] sm:text-4xl xl:text-[3.25rem] leading-[1.12] font-bold tracking-tight text-light-accent dark:text-white mb-5 max-w-[560px]" data-scroll-reveal="up" style="--scroll-delay: 0.15s">
+        {t['hero.title_1']}
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-sm sm:text-base lg:text-lg text-light-muted dark:text-white/55 leading-relaxed max-w-[520px] mb-9" data-scroll-reveal="up" style="--scroll-delay: 0.2s">
+        {t['hero.subtitle_1']}
+      </p>
+
+      <!-- CTAs -->
+      <div class="flex flex-col sm:flex-row items-center gap-4" data-scroll-reveal="up" style="--scroll-delay: 0.25s">
+        <CubeButton href="#contact" label={t['hero.cta']} backLabel={t['hero.cta']} color="dark" class="text-sm px-7 py-3" />
+        <button id="chat-cta" type="button"
+          class="group relative inline-flex h-14 min-w-[200px] items-center justify-center gap-3 px-8 text-xs font-mono tracking-[0.1em] uppercase bg-transparent border border-light-border dark:border-dark-border text-light-accent dark:text-white hover:border-red-500/50 hover:text-white hover:shadow-[0_0_30px_-6px_rgba(255,34,51,0.5)] transition-all duration-300">
+          <svg viewBox="0 0 48 48" class="w-5 h-5" aria-hidden="true">
+            <rect x="2" y="4" width="44" height="40" rx="10" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.6"/>
+            <circle cx="19" cy="19" r="3.2" fill="#ff2233"/>
+            <circle cx="29" cy="19" r="3.2" fill="#fff"/>
+            <rect x="13" y="29" width="22" height="4" rx="2" fill="currentColor" opacity="0.4"/>
+          </svg>
+          {t['hero.cta_secondary']}
+        </button>
+      </div>
+    </div>
+
+    <!-- 3D knight column -->
+    <div class="relative w-full h-[320px] sm:h-[400px] lg:h-[560px] xl:h-[620px] order-first lg:order-last mt-8 lg:mt-0">
+      <RobotScene />
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-50" data-scroll-reveal="up" style="--scroll-delay: 0.6s">
+    <div class="w-5 h-8 border-2 border-light-accent/30 dark:border-white/30 rounded-full flex justify-center pt-1.5">
+      <div class="w-1 h-2 bg-light-accent/50 dark:bg-white/50 rounded-full animate-bounce"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Chat CTA → opens NOSYEIH chatbot
+  document.getElementById('chat-cta')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('open-chat'));
+  });
+
+  if (!prefersReducedMotion) {
+    // --- Matrix rain ---
+    const matrixCanvas = document.getElementById('matrix-canvas') as HTMLCanvasElement;
+    if (matrixCanvas) {
+      const ctx = matrixCanvas.getContext('2d');
+      if (ctx) {
+        let w = 0, h = 0, columns = 0, drops: number[] = [];
+        const fontSize = 14;
+        const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>{}[];:=+'.split('');
+
+        function resize() {
+          w = matrixCanvas!.width = window.innerWidth;
+          h = matrixCanvas!.height = window.innerHeight;
+          columns = Math.floor(w / fontSize);
+          drops = Array.from({ length: columns }, () => Math.random() * -100);
+        }
+
+        function drawMatrix() {
+          ctx!.fillStyle = 'rgba(13,13,26,0.05)';
+          ctx!.fillRect(0, 0, w, h);
+          ctx!.font = `${fontSize}px monospace`;
+          for (let i = 0; i < columns; i++) {
+            const char = chars[Math.floor(Math.random() * chars.length)];
+            const x = i * fontSize;
+            const y = drops[i] * fontSize;
+            ctx!.fillStyle = Math.random() > 0.98 ? '#22c55e' : 'rgba(34,197,94,0.35)';
+            ctx!.fillText(char, x, y);
+            if (y > h && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+          }
+          requestAnimationFrame(drawMatrix);
+        }
+
+        resize();
+        drawMatrix();
+        window.addEventListener('resize', resize);
+      }
+    }
+  }
+</script>

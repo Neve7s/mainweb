@@ -1,0 +1,14 @@
+{
+  "name": "hieyson-chat-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "secret": "wrangler secret put NVIDIA_API_KEY"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

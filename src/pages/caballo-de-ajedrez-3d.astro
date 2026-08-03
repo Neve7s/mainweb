@@ -1,0 +1,538 @@
+---
+export const prerender = true;
+// Chess Knight 3D - Astro + Three.js
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>♞ Knight — Caballo de Ajedrez 3D</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Space+Mono:wght@400;700&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink:    #0f0f12;
+      --ivory:  #f0ede6;
+      --gold:   #c8a96e;
+      --silver: #9ba3af;
+      --dim:    #1e1e24;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--ink);
+      color: var(--ivory);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      overflow: hidden;
+    }
+
+    /* ── Canvas ── */
+    #canvas-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+    canvas { display: block; width: 100% !important; height: 100% !important; }
+
+    /* ── Overlay UI ── */
+    .ui {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(1.5rem, 4vw, 3rem);
+    }
+
+    /* Top-left badge */
+    .badge {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+    }
+    .badge-glyph {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      line-height: 1;
+      color: var(--gold);
+      font-style: italic;
+    }
+    .badge-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--silver);
+      opacity: 0.75;
+    }
+
+    /* Bottom block */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .title-block h1 {
+      font-size: clamp(2.8rem, 7vw, 6rem);
+      font-weight: 300;
+      line-height: 0.92;
+      letter-spacing: -0.01em;
+    }
+    .title-block h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+    .subtitle {
+      margin-top: 0.6rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--silver);
+      opacity: 0.6;
+    }
+
+    .hint {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--silver);
+      opacity: 0.45;
+      text-align: right;
+      line-height: 1.8;
+    }
+
+    /* Thin vertical rule */
+    .rule {
+      position: fixed;
+      left: clamp(1.5rem, 4vw, 3rem);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 30vh;
+      background: linear-gradient(to bottom, transparent, var(--gold) 40%, var(--gold) 60%, transparent);
+      opacity: 0.18;
+      z-index: 10;
+    }
+
+    /* Loading overlay */
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s ease;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    .loader-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading"><span class="loader-text">Tallando...</span></div>
+
+<div id="canvas-wrap"></div>
+<div class="rule"></div>
+
+<div class="ui">
+  <div class="badge">
+    <span class="badge-glyph">♞</span>
+    <span class="badge-label">Chess / Knight</span>
+  </div>
+  <div class="footer">
+    <div class="title-block">
+      <h1>El<br><em>Caballo</em></h1>
+      <p class="subtitle">Pieza de ajedrez · Three.js · WebGL</p>
+    </div>
+    <div class="hint">
+      Arrastrar para rotar<br>
+      Scroll para zoom
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/environments/RoomEnvironment.js';
+
+// ── Scene setup ──────────────────────────────────────────────────────────────
+const wrap = document.getElementById('canvas-wrap');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+wrap.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0f0f12, 0.045);
+
+const camera = new THREE.PerspectiveCamera(35, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
+camera.position.set(0, 4, 14);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 6;
+controls.maxDistance = 22;
+controls.maxPolarAngle = Math.PI * 0.82;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.5;
+
+// ── Lights ────────────────────────────────────────────────────────────────────
+const ambient = new THREE.AmbientLight(0xf0ede6, 0.35);
+scene.add(ambient);
+
+// Key light – warm gold from upper-right
+const keyLight = new THREE.DirectionalLight(0xffd98a, 2.8);
+keyLight.position.set(5, 10, 5);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 40;
+keyLight.shadow.camera.left = -8;
+keyLight.shadow.camera.right = 8;
+keyLight.shadow.camera.top = 8;
+keyLight.shadow.camera.bottom = -8;
+keyLight.shadow.bias = -0.001;
+scene.add(keyLight);
+
+// Fill – cool blue-silver from left
+const fillLight = new THREE.DirectionalLight(0x8aafc8, 0.9);
+fillLight.position.set(-6, 4, -3);
+scene.add(fillLight);
+
+// Rim – deep gold from behind
+const rimLight = new THREE.DirectionalLight(0xc8a96e, 1.6);
+rimLight.position.set(-2, 6, -8);
+scene.add(rimLight);
+
+// Point light on the piece itself
+const pointLight = new THREE.PointLight(0xfff0d0, 1.2, 12);
+pointLight.position.set(0, 4, 2);
+scene.add(pointLight);
+
+// ── Materials ─────────────────────────────────────────────────────────────────
+const pieceMat = new THREE.MeshStandardMaterial({
+  color: 0x1a1a22,
+  roughness: 0.22,
+  metalness: 0.82,
+  envMapIntensity: 1.0,
+});
+
+const baseMat = new THREE.MeshStandardMaterial({
+  color: 0x111118,
+  roughness: 0.35,
+  metalness: 0.6,
+});
+
+const shadowPlaneMat = new THREE.MeshStandardMaterial({
+  color: 0x0c0c10,
+  roughness: 1,
+  metalness: 0,
+  transparent: true,
+  opacity: 0.55,
+});
+
+// ── PMREMGenerator for env reflections ────────────────────────────────────────
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environment = envTexture;
+
+// ── Helper: lathe shape builder ───────────────────────────────────────────────
+function lathePoints(pts) {
+  return pts.map(([x, y]) => new THREE.Vector2(x, y));
+}
+
+// ── BASE of the piece (pedestal) ──────────────────────────────────────────────
+const baseProfile = lathePoints([
+  [0.00, 0.00],
+  [1.30, 0.00],
+  [1.40, 0.06],
+  [1.35, 0.12],
+  [1.10, 0.18],
+  [1.05, 0.30],
+  [1.10, 0.36],
+  [0.92, 0.42],
+  [0.88, 0.55],
+]);
+const baseGeo = new THREE.LatheGeometry(baseProfile, 64);
+const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+baseMesh.castShadow = true;
+baseMesh.receiveShadow = true;
+scene.add(baseMesh);
+
+// ── STEM (column) ─────────────────────────────────────────────────────────────
+const stemProfile = lathePoints([
+  [0.88, 0.55],
+  [0.80, 0.60],
+  [0.68, 0.75],
+  [0.60, 1.00],
+  [0.58, 1.20],
+  [0.60, 1.40],
+  [0.65, 1.55],
+  [0.70, 1.70],
+  [0.72, 1.85],
+  [0.70, 2.00],
+  [0.65, 2.10],
+]);
+const stemGeo = new THREE.LatheGeometry(stemProfile, 64);
+const stemMesh = new THREE.Mesh(stemGeo, pieceMat);
+stemMesh.castShadow = true;
+scene.add(stemMesh);
+
+// ── NECK transition ───────────────────────────────────────────────────────────
+const neckProfile = lathePoints([
+  [0.65, 2.10],
+  [0.68, 2.18],
+  [0.72, 2.28],
+  [0.68, 2.38],
+  [0.58, 2.46],
+  [0.46, 2.54],
+  [0.38, 2.64],
+  [0.34, 2.76],
+]);
+const neckGeo = new THREE.LatheGeometry(neckProfile, 64);
+const neckMesh = new THREE.Mesh(neckGeo, pieceMat);
+neckMesh.castShadow = true;
+scene.add(neckMesh);
+
+// ── HEAD of the horse – built from extruded + deformed geometry ───────────────
+// We build the head as a series of cross-sections using TubeGeometry along
+// a custom CatmullRom curve, then add ears and a snout.
+
+// Spine curve of the horse head (side view, going up and forward)
+const headSpine = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(0,    2.76, 0.00),  // neck base
+  new THREE.Vector3(0,    3.10, 0.10),  // lower throat
+  new THREE.Vector3(0,    3.45, 0.22),  // mid throat
+  new THREE.Vector3(0,    3.80, 0.14),  // jaw
+  new THREE.Vector3(0,    4.10, 0.04),  // muzzle base
+  new THREE.Vector3(0,    4.28,-0.12),  // nose
+  new THREE.Vector3(0,    4.32,-0.26),  // nostril tip
+]);
+
+// Custom tube-like head with varying radii
+function buildHead() {
+  const group = new THREE.Group();
+
+  // Main cranium block (slightly tapered box-ish shape)
+  const craniumShape = new THREE.Shape();
+  craniumShape.moveTo(-0.38, 0);
+  craniumShape.bezierCurveTo(-0.42, 0.1, -0.40, 0.55, -0.28, 0.60);
+  craniumShape.lineTo( 0.28, 0.60);
+  craniumShape.bezierCurveTo( 0.40, 0.55,  0.42, 0.1,  0.38, 0);
+  craniumShape.lineTo(-0.38, 0);
+
+  const craniumPath = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0,   0.00),
+    new THREE.Vector3(0, 0.3, 0.08),
+    new THREE.Vector3(0, 0.6, 0.12),
+    new THREE.Vector3(0, 0.9,-0.04),
+    new THREE.Vector3(0, 1.1,-0.22),
+    new THREE.Vector3(0, 1.18,-0.40),
+  ]);
+
+  const extrudeSettings = {
+    steps: 40,
+    bevelEnabled: false,
+    extrudePath: craniumPath,
+  };
+
+  const craniumGeo = new THREE.ExtrudeGeometry(craniumShape, extrudeSettings);
+  craniumGeo.computeVertexNormals();
+
+  // Scale to taper toward nose
+  const posArr = craniumGeo.attributes.position.array;
+  for (let i = 0; i < posArr.length; i += 3) {
+    const y = posArr[i + 1];
+    const t = Math.max(0, Math.min(1, (y - 0) / 1.2));
+    const taper = 1 - t * 0.42;
+    posArr[i]     *= taper;         // x
+    posArr[i + 2] *= (1 - t * 0.1); // z slight
+  }
+  craniumGeo.attributes.position.needsUpdate = true;
+  craniumGeo.computeVertexNormals();
+
+  const craniumMesh = new THREE.Mesh(craniumGeo, pieceMat);
+  craniumMesh.position.set(0, 2.76, 0);
+  craniumMesh.castShadow = true;
+  group.add(craniumMesh);
+
+  // ── Ear (left + right) ──
+  function makeEar(side) {
+    const earPts = [
+      new THREE.Vector3( side * 0.18, 0,    0),
+      new THREE.Vector3( side * 0.22, 0.12, 0),
+      new THREE.Vector3( side * 0.08, 0.34, 0),
+      new THREE.Vector3( side * 0.00, 0.38, 0),
+    ];
+    const earCurve = new THREE.CatmullRomCurve3(earPts);
+    const earGeo = new THREE.TubeGeometry(earCurve, 10, 0.06, 8, false);
+    const tip = new THREE.SphereGeometry(0.045, 8, 8);
+    const earMesh = new THREE.Mesh(earGeo, pieceMat);
+    const tipMesh = new THREE.Mesh(tip, pieceMat);
+    const earGroup = new THREE.Group();
+    earGroup.add(earMesh);
+    tipMesh.position.copy(earPts[3]);
+    earGroup.add(tipMesh);
+    earGroup.position.set(0, 3.90, -0.10);
+    earGroup.castShadow = true;
+    return earGroup;
+  }
+  group.add(makeEar(1));
+  group.add(makeEar(-1));
+
+  // ── Mane (ridge on top/back of head) ──
+  const maneCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 3.58, -0.06),
+    new THREE.Vector3(0, 3.80, -0.10),
+    new THREE.Vector3(0, 4.00, -0.16),
+    new THREE.Vector3(0, 4.14, -0.28),
+  ]);
+  for (let i = 0; i < 5; i++) {
+    const t = i / 4;
+    const pt = maneCurve.getPoint(t);
+    const r  = 0.055 - t * 0.025;
+    const tuft = new THREE.SphereGeometry(r, 8, 8);
+    const m = new THREE.Mesh(tuft, pieceMat);
+    m.position.copy(pt);
+    group.add(m);
+  }
+
+  // ── Eye sockets ──
+  function makeEye(side) {
+    const eyeGeo = new THREE.SphereGeometry(0.055, 12, 12);
+    const m = new THREE.Mesh(eyeGeo, new THREE.MeshStandardMaterial({
+      color: 0x050508,
+      roughness: 0.1,
+      metalness: 0.9,
+    }));
+    m.position.set(side * 0.30, 3.98, -0.00);
+    return m;
+  }
+  group.add(makeEye(1));
+  group.add(makeEye(-1));
+
+  // ── Nostrils ──
+  function makeNostril(side) {
+    const geo = new THREE.SphereGeometry(0.04, 8, 8);
+    geo.scale(1.2, 0.7, 0.8);
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+      color: 0x080810,
+      roughness: 0.4,
+      metalness: 0.5,
+    }));
+    m.position.set(side * 0.12, 4.26, -0.34);
+    return m;
+  }
+  group.add(makeNostril(1));
+  group.add(makeNostril(-1));
+
+  return group;
+}
+
+const headGroup = buildHead();
+scene.add(headGroup);
+
+// ── SHADOW CATCHER plane ───────────────────────────────────────────────────────
+const planeGeo = new THREE.CircleGeometry(4, 64);
+const planeMesh = new THREE.Mesh(planeGeo, shadowPlaneMat);
+planeMesh.rotation.x = -Math.PI / 2;
+planeMesh.position.y = -0.01;
+planeMesh.receiveShadow = true;
+scene.add(planeMesh);
+
+// ── Subtle grid ────────────────────────────────────────────────────────────────
+const gridHelper = new THREE.GridHelper(12, 24, 0x1e1e28, 0x1a1a22);
+gridHelper.position.y = -0.02;
+gridHelper.material.transparent = true;
+gridHelper.material.opacity = 0.4;
+scene.add(gridHelper);
+
+// ── Particle field (dust / atmosphere) ───────────────────────────────────────
+const particleCount = 260;
+const particlePositions = new Float32Array(particleCount * 3);
+for (let i = 0; i < particleCount; i++) {
+  particlePositions[i * 3]     = (Math.random() - 0.5) * 14;
+  particlePositions[i * 3 + 1] = Math.random() * 8;
+  particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 14;
+}
+const particleGeo = new THREE.BufferGeometry();
+particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+const particleMat = new THREE.PointsMaterial({
+  color: 0xc8a96e,
+  size: 0.035,
+  transparent: true,
+  opacity: 0.35,
+  sizeAttenuation: true,
+});
+const particles = new THREE.Points(particleGeo, particleMat);
+scene.add(particles);
+
+// ── Resize handler ─────────────────────────────────────────────────────────────
+function onResize() {
+  camera.aspect = wrap.clientWidth / wrap.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+}
+window.addEventListener('resize', onResize);
+
+// ── Animate ───────────────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+// Hide loading overlay
+setTimeout(() => {
+  document.getElementById('loading').classList.add('hidden');
+}, 400);
+
+function animate() {
+  requestAnimationFrame(animate);
+  const elapsed = clock.getElapsedTime();
+
+  // Gentle breathing / levitation
+  const breathe = Math.sin(elapsed * 0.9) * 0.04;
+  baseMesh.position.y  = breathe;
+  stemMesh.position.y  = breathe;
+  neckMesh.position.y  = breathe;
+  headGroup.position.y = breathe;
+
+  // Particles slow drift
+  particles.rotation.y = elapsed * 0.02;
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
+</script>
+</body>
+</html>

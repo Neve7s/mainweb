@@ -1,0 +1,288 @@
+---
+// ProjectModal.astro - Full project detail with separate gallery overlay
+const lang = Astro.props.lang || 'es';
+---
+
+<script define:vars={{ lang }}>
+  let currentGalleryItems = [];
+  let currentImageIndex = 0;
+
+  function renderProjectModal(project) {
+    const modalBody = window.getModalBody();
+    if (!modalBody) return;
+
+    const isEn = lang === 'en';
+
+    // Build tags
+    const tagsHtml = (project.tags || []).map(tag =>
+      `<span class="text-[10px] font-mono tracking-wider uppercase px-3 py-1.5 border border-light-border dark:border-dark-border text-light-muted dark:text-dark-muted">${tag}</span>`
+    ).join('');
+
+    // Build logros
+    const logrosHtml = (project.logros || []).map(logro =>
+      `<li class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300 font-light">
+        <svg class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+        <span>${logro}</span>
+      </li>`
+    ).join('');
+
+    // Build stack
+    const stackHtml = (project.stack || []).map(tech =>
+      `<span class="text-[10px] font-mono tracking-wider uppercase px-3 py-1.5 bg-light-800 dark:bg-dark-900 border border-light-border dark:border-dark-border text-light-accent dark:text-gray-300">${tech}</span>`
+    ).join('');
+
+    // Build servicios
+    const serviciosHtml = (project.servicios || []).map(s =>
+      `<li class="text-sm text-light-accent dark:text-white font-light">${s}</li>`
+    ).join('');
+
+    // Gallery button
+    const totalImages = (project.imagenes || []).length;
+    const totalVideos = (project.videos || []).length;
+    const totalItems = totalImages + totalVideos;
+    const galleryBtnLabel = isEn ? 'OPEN SYSTEM GALLERY' : 'ABRIR GALERIA SISTEMA';
+
+    let galleryBtnHtml = '';
+    if (totalItems > 0) {
+      galleryBtnHtml = `
+        <div class="relative overflow-hidden w-full">
+          <canvas class="spark-btn-canvas absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+          <button id="open-gallery-btn" class="relative z-20 w-full flex items-center justify-between px-5 py-3.5 border border-light-border dark:border-dark-border text-light-accent dark:text-white text-[10px] font-mono uppercase tracking-[0.2em] hover:bg-light-800 dark:hover:bg-dark-900 transition-colors group spark-pulse">
+            <div class="flex items-center">
+              <svg class="w-3.5 h-3.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+              <span>${galleryBtnLabel}</span>
+            </div>
+            <span class="opacity-40 font-bold">(${totalItems})</span>
+          </button>
+        </div>`;
+    }
+
+    // URL section with electric-link
+    let urlHtml = '';
+    if (project.url) {
+      const displayUrl = project.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      const deployLabel = isEn ? 'LIVE DEPLOY' : 'SISTEMA EN VIVO';
+      const viewLabel = isEn ? 'View' : 'Ver';
+      urlHtml = `
+        <div class="electric-link-container relative p-5 bg-black rounded-xl flex flex-col items-center justify-center overflow-visible border border-green-500/30 gap-3">
+          <canvas class="electric-link-canvas absolute pointer-events-none z-[5]" style="inset: -30px; width: calc(100% + 60px); height: calc(100% + 60px);"></canvas>
+          <div class="relative z-10 text-center w-full">
+            <span class="block font-mono text-[8px] text-green-400 tracking-[0.3em] mb-1 opacity-60">${deployLabel}</span>
+            <a href="${project.url}" target="_blank" rel="noopener noreferrer" class="text-white font-display font-bold text-xs no-underline transition-all block break-all max-w-full">
+              ${displayUrl}
+            </a>
+          </div>
+          <a href="${project.url}" target="_blank" rel="noopener noreferrer" class="relative z-10 w-full text-center text-green-400 font-mono text-[9px] no-underline font-bold border border-green-400/40 py-2 rounded-md transition-all bg-green-400/5 hover:bg-green-400/10">
+            ${viewLabel} &gt;
+          </a>
+        </div>`;
+    }
+
+    // Contact CTA
+    const contactLabel = isEn ? 'REQUEST SIMILAR PROJECT' : 'SOLICITAR PROYECTO SIMILAR';
+
+    modalBody.innerHTML = `
+      <div class="modal-inner-content">
+        <div class="flex flex-wrap items-center gap-2 mb-4">${tagsHtml}</div>
+
+        <h2 class="text-2xl md:text-3xl font-display font-bold uppercase leading-tight tracking-tighter mb-6 text-light-accent dark:text-white max-w-4xl">
+          ${project.titulo_modal || project.titulo_listado || ''}
+        </h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+          <div class="lg:col-span-2 space-y-8">
+            <div>
+              <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted mb-3 opacity-70">01 // ${isEn ? 'The Challenge' : 'El Desafio'}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed">${project.desafio || ''}</p>
+            </div>
+            <div>
+              <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted mb-3 opacity-70">02 // ${isEn ? 'The Architectural Solution' : 'La Solucion Arquitectonica'}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed">${project.solucion || ''}</p>
+            </div>
+            <div class="bg-light-800 dark:bg-dark-900/50 p-5 border border-light-border dark:border-dark-border">
+              <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted mb-4 opacity-70">${isEn ? 'Key Achievements' : 'Logros Clave'}</h3>
+              <ul class="space-y-3 max-h-[240px] overflow-y-auto pr-2">${logrosHtml}</ul>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="space-y-3">
+              ${urlHtml}
+              ${galleryBtnHtml}
+              <div class="relative overflow-hidden w-full">
+                <canvas class="spark-btn-canvas absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+                <a href="#contact" onclick="window.closeModal();" class="relative z-20 w-full flex justify-center items-center py-3.5 border border-light-border dark:border-dark-border text-light-accent dark:text-white text-[10px] font-mono uppercase tracking-[0.2em] hover:bg-light-800 dark:hover:bg-dark-900 transition-colors spark-pulse">
+                  <svg class="w-3.5 h-3.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                  ${contactLabel}
+                </a>
+              </div>
+            </div>
+
+            <div class="pt-6 border-t border-light-border dark:border-dark-border">
+              <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted mb-3 opacity-70">${isEn ? 'Tech Stack' : 'Stack Tecnologico'}</h3>
+              <div class="flex flex-wrap gap-2">${stackHtml}</div>
+            </div>
+
+            <div>
+              <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted mb-3 opacity-70">${isEn ? 'Services' : 'Servicios'}</h3>
+              <ul class="space-y-1.5">${serviciosHtml}</ul>
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
+    `;
+
+    // Wire gallery button
+    const galleryBtn = document.getElementById('open-gallery-btn');
+    if (galleryBtn) {
+      galleryBtn.addEventListener('click', () => openGalleryModal(project));
+    }
+
+    // Init electric link canvas effect (delay 1 frame for DOM to render)
+    requestAnimationFrame(() => {
+      if (typeof window.initElectricLinks === 'function') {
+        window.initElectricLinks();
+      }
+    });
+  }
+
+  // GALLERY MODAL (separate full-screen overlay)
+  function openGalleryModal(project) {
+    const galleryModal = document.getElementById('gallery-modal');
+    const galleryBody = document.getElementById('gallery-body');
+    const galleryTitle = document.getElementById('gallery-title');
+    const galleryCounter = document.getElementById('gallery-counter');
+    const prevBtn = document.getElementById('gallery-prev');
+    const nextBtn = document.getElementById('gallery-next');
+    if (!galleryModal || !galleryBody) return;
+
+    // Consolidate items: videos first, then images
+    const items = [];
+    if (project.videos && Array.isArray(project.videos)) {
+      project.videos.forEach(v => items.push({ type: 'video', src: v }));
+    }
+    if (project.imagenes && project.imagenes.length > 0) {
+      project.imagenes.forEach(img => items.push({ type: 'image', src: '/' + img }));
+    }
+    if (items.length === 0) return;
+
+    currentGalleryItems = items;
+    currentImageIndex = 0;
+
+    const isDark = document.documentElement.classList.contains('dark');
+
+    function getYouTubeEmbedUrl(url) {
+      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&?#]+)/);
+      return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=0&rel=0` : url;
+    }
+
+    function renderGalleryItems() {
+      galleryBody.innerHTML = items.map((item, i) => {
+        const isVideo = item.type === 'video';
+        const content = isVideo
+          ? `<iframe src="${getYouTubeEmbedUrl(item.src)}" style="width:100%; height:100%; border-radius:1.5rem; background:black;" frameborder="0" allowfullscreen class="pointer-events-auto"></iframe>`
+          : `<img src="${item.src}" loading="lazy" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);" class="pointer-events-auto" />`;
+        return `
+          <div class="gallery-item flex-shrink-0 snap-center flex items-center justify-center transition-all duration-500" data-index="${i}"
+               style="width: 80vw; max-width: 1100px; height: 70vh;">
+            <div class="gallery-item-content w-full h-full flex items-center justify-center p-4">
+              ${content}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function updateGalleryStyles(activeIndex) {
+      const galleryItems = galleryBody.querySelectorAll('.gallery-item');
+      galleryItems.forEach((child, i) => {
+        const content = child.querySelector('.gallery-item-content');
+        if (i === activeIndex) {
+          child.style.transform = 'scale(1)';
+          child.style.opacity = '1';
+          child.style.zIndex = '10';
+          if (content) content.style.filter = 'brightness(1) blur(0px)';
+        } else {
+          const dist = Math.abs(i - activeIndex);
+          child.style.transform = 'scale(0.85)';
+          child.style.opacity = dist > 1 ? '0.05' : '0.4';
+          child.style.zIndex = '5';
+          if (content) content.style.filter = isDark
+            ? 'brightness(0.3) blur(5px)'
+            : 'brightness(0.8) grayscale(0.5) blur(5px)';
+        }
+      });
+    }
+
+    function updateArrows(index) {
+      if (prevBtn) {
+        prevBtn.style.opacity = index === 0 ? '0.1' : '1';
+        prevBtn.style.pointerEvents = index === 0 ? 'none' : 'auto';
+      }
+      if (nextBtn) {
+        nextBtn.style.opacity = index === items.length - 1 ? '0.1' : '1';
+        nextBtn.style.pointerEvents = index === items.length - 1 ? 'none' : 'auto';
+      }
+    }
+
+    function scrollToItem(index) {
+      const el = galleryBody.querySelectorAll('.gallery-item')[index];
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+
+    renderGalleryItems();
+
+    galleryTitle.innerHTML = project.titulo_modal || 'Galeria';
+    galleryCounter.textContent = `1 / ${items.length}`;
+    updateArrows(0);
+    updateGalleryStyles(0);
+
+    // IntersectionObserver for active item tracking
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const index = parseInt(entry.target.getAttribute('data-index'));
+          currentImageIndex = index;
+          galleryCounter.textContent = `${index + 1} / ${items.length}`;
+          updateArrows(index);
+          updateGalleryStyles(index);
+        }
+      });
+    }, { root: galleryBody, threshold: 0.6 });
+    galleryBody.querySelectorAll('.gallery-item').forEach(item => observer.observe(item));
+
+    // Arrow buttons
+    prevBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); if (currentImageIndex > 0) scrollToItem(currentImageIndex - 1); };
+    nextBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); if (currentImageIndex < items.length - 1) scrollToItem(currentImageIndex + 1); };
+
+    // Keyboard navigation
+    window._galleryKeyHandler = function(e) {
+      if (!galleryModal || !galleryModal.open) return;
+      if (e.key === 'Escape') closeGalleryModal();
+      if (e.key === 'ArrowRight') nextBtn?.click();
+      if (e.key === 'ArrowLeft') prevBtn?.click();
+    };
+    document.addEventListener('keydown', window._galleryKeyHandler);
+
+    // Open gallery
+    galleryModal.style.display = '';
+    galleryModal.showModal();
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeGalleryModal() {
+    const galleryModal = document.getElementById('gallery-modal');
+    if (!galleryModal) return;
+    galleryModal.close();
+    galleryModal.style.display = 'none';
+    document.body.style.overflow = '';
+    if (window._galleryKeyHandler) {
+      document.removeEventListener('keydown', window._galleryKeyHandler);
+    }
+  }
+
+  window.renderProjectModal = renderProjectModal;
+  window.openGalleryModal = openGalleryModal;
+  window.closeGalleryModal = closeGalleryModal;
+</script>

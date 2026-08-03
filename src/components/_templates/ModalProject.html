@@ -1,0 +1,63 @@
+<div class="modal-inner-content p-2 md:p-4">
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+        {{tags_html}}
+    </div>
+    
+    <h2 class="text-2xl md:text-3xl font-display font-bold uppercase tracking-tighter mb-6 text-light-accent dark:text-white">
+        {{titulo_modal}}
+    </h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+        <!-- Contenido Principal -->
+        <div class="lg:col-span-2 space-y-8">
+            <div>
+                <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted border-b border-light-border dark:border-dark-border pb-2 mb-4 opacity-70">01 // El Desafío</h3>
+                <p class="text-sm text-light-accent dark:text-gray-300 font-light leading-relaxed">
+                    {{desafio}}
+                </p>
+            </div>
+            
+            <div>
+                <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted border-b border-light-border dark:border-dark-border pb-2 mb-4 opacity-70">02 // La Solución Arquitectónica</h3>
+                <p class="text-sm text-light-accent dark:text-gray-300 font-light leading-relaxed">
+                    {{solucion}}
+                </p>
+            </div>
+
+            <div class="bg-light-800 dark:bg-dark-900/50 p-5 border border-light-border dark:border-dark-border">
+                <ul class="space-y-3 font-mono text-xs text-light-accent dark:text-gray-300">
+                    {{logros_html}}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Sidebar de Acciones (Command Center) -->
+        <div class="space-y-6">
+            <!-- Botones de Acción Primaria -->
+            <div class="space-y-4">
+                {{url_html}}
+                
+                {{btn_galeria_html}}
+
+                <a href="#contact" onclick="document.getElementById('modal-close').click();" class="w-full flex justify-center items-center py-3.5 border border-light-border dark:border-dark-border text-[10px] font-mono uppercase tracking-[0.2em] text-light-accent dark:text-white hover:bg-light-accent hover:text-white dark:hover:bg-white dark:hover:text-black transition-all active:scale-[0.98] group">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 mr-2"></i>
+                    SOLICITAR PROYECTO SIMILAR
+                </a>
+            </div>
+
+            <div class="pt-6 border-t border-light-border dark:border-dark-border">
+                <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted mb-4">Stack Tecnológico</h3>
+                <div class="flex flex-wrap gap-2">
+                    {{stack_html}}
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted mb-4">Servicios</h3>
+                <ul class="text-xs text-light-accent dark:text-gray-400 space-y-2 font-light">
+                    {{servicios_html}}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

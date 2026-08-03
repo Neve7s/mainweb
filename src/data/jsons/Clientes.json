@@ -1,0 +1,19 @@
+{
+    "clientes": [
+        {
+            "Compañia": "HIGH LOG INTERNATIONAL S.A.C",
+            "url": "https://highloginternational.com",
+            "Icono": "https://highloginternational.com/images/logo/logoAzul-icon.svg"
+        },
+        {
+            "Compañia": "E&G FITNNESS SPORT S.A.C",
+            "url": "https://eygfitnnesssport.com",
+            "Icono": "https://eygfitnnesssport.com/static/img/logos/favicon.svg"
+        },
+        {
+            "Compañia": "LogIA",
+            "url": "https://app.logia.lat",
+            "Icono": "https://app.logia.lat/static/img/web-app-manifest-192x192.png"
+        }
+    ]
+}

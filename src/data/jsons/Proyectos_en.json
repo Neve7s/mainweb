@@ -1,0 +1,190 @@
+{
+  "proyectos": [
+    {
+      "id": "logia-logistics",
+      "categoria": "Logistics & SaaS",
+      "tecnologias_listado": "Django & Python",
+      "titulo_listado": "LogIA: Freight Forwarder Software",
+      "descripcion_listado": "Digital control tower for international cargo management. Streamlines tracking and quoting, eliminating operational chaos.",
+      "url": "https://app.logia.lat",
+      "imagenes": [
+        "img/proyectos/logia/dashboard.webp",
+        "img/proyectos/logia/configuracion.webp",
+        "img/proyectos/logia/cotizador.webp",
+        "img/proyectos/logia/fian2.webp",
+        "img/proyectos/logia/fiannza1.webp",
+        "img/proyectos/logia/kpi.webp",
+        "img/proyectos/logia/maestros.webp",
+        "img/proyectos/logia/shipment.webp",
+        "img/proyectos/logia/pdf-docs.jpg"
+      ],
+      "tags": [
+        "Digital Logistics",
+        "SaaS",
+        "Automation"
+      ],
+      "titulo_modal": "LogIA <br><span class=\"text-light-muted dark:text-dark-muted\">Freight Forwarder Software</span>",
+      "desafio": "Moving global freight used to be a nightmare of endless emails and spreadsheets to generate documents, reports, etc. Agencies wasted hours manually tracking containers.",
+      "solucion": "Designed LogIA as the central brain. It streamlines tracking of cargo like containers, packages, etc., and turns hours of quoting math into a couple of clicks, generating more professional documents.",
+      "logros": [
+        "Smart interactive dashboard",
+        "Employee, roles, and permissions management",
+        "Centralization of master data such as clients, shipping lines, ports, cargo, etc.",
+        "90% reduction in quoting and document creation time",
+        "Structured interface to reduce visual fatigue",
+        "Swift tracking with major carriers (Maersk, MSC, etc.)",
+        "Scalable software with API integration",
+        "CRM Integration",
+        "Electronic billing for freight, transport, and warehousing services, with or without withholding tax (detracción)",
+        "Automated PDF report generation",
+        "Service and product inventory control",
+        "KPI control panel"
+      ],
+      "stack": [
+        "Python",
+        "Django",
+        "PostgreSQL",
+        "Tracking APIs",
+        "HTMX",
+        "Bootstrap 5",
+        "Tailwind CSS"
+      ],
+      "servicios": [
+        "SaaS Architecture",
+        "Logistics Automation",
+        "API Integrations",
+        "Full-Stack Dev"
+      ]
+    },
+    {
+      "id": "eyg-fitness-sport",
+      "categoria": "Premium E-commerce",
+      "tecnologias_listado": "Django & JavaScript",
+      "titulo_listado": "E&G Fitness: Premium E-commerce",
+      "descripcion_listado": "High-end e-commerce ecosystem for selling gym and homegym equipment. Clean, elegant design optimized for SEO.",
+      "url": "https://www.eygfitnnesssport.com/",
+      "imagenes": [
+        "img/proyectos/eyg/01.webp",
+        "img/proyectos/eyg/02.webp",
+        "img/proyectos/eyg/03.webp",
+        "img/proyectos/eyg/04.webp",
+        "img/proyectos/eyg/1.webp",
+        "img/proyectos/eyg/2.webp",
+        "img/proyectos/eyg/3.webp",
+        "img/proyectos/eyg/4.webp",
+        "img/proyectos/eyg/5.webp"
+      ],
+      "videos": [
+        "https://youtu.be/2S7Q0UUphfU?si=HJbVkuqj3nYGapAv",
+        "https://youtu.be/ZJzYmNuxk7g?si=A-S2VVLli7kkfbuc"
+      ],
+      "tags": [
+        "E-commerce",
+        "Immersive UX",
+        "SEO"
+      ],
+      "titulo_modal": "E&G Fitness <br><span class=\"text-light-muted dark:text-dark-muted font-light\">Elite Training Platform</span>",
+      "desafio": "Create a digital interface that matches the purchase experience of high-end equipment with online shopping functionality, while also allowing the administrator to manage these sales.",
+      "solucion": "Platform that combines a Django backend with ultra-optimized Vanilla JS for instant filtering and navigation within the store's product catalog.",
+      "logros": [
+        "Elegant minimalist design adapted to the industry",
+        "Scalable e-commerce with a smart dashboard for e-commerce administration",
+        "Integrated POS system for physical store sales",
+        "60% increase in closures",
+        "Automated email notifications upon product purchase",
+        "Professional email management for marketing, product promotion, discounts, and coupons",
+        "Rating system for purchased products",
+        "45% reduction in CAC",
+        "Leading SEO positioning in its niche",
+        "User-friendly interface for e-commerce administrators",
+        "WhatsApp integration"
+      ],
+      "stack": [
+        "Python",
+        "Django",
+        "JavaScript",
+        "Tailwind CSS",
+        "SEO Tech"
+      ],
+      "servicios": [
+        "E-commerce",
+        "Technical SEO",
+        "UI/UX Design"
+      ]
+    },
+    {
+      "id": "high-log-spa",
+      "categoria": "Logistics & SPA",
+      "tecnologias_listado": "JavaScript, Tailwind CSS, HTML5, CSS",
+      "titulo_listado": "HighLog International",
+      "descripcion_listado": "SPA - Landing page for an international logistics company specializing in cargo transport, customs, etc.",
+      "url": "https://highloginternational.com/",
+      "imagenes": [
+        "img/proyectos/highlog/1.webp",
+        "img/proyectos/highlog/2.webp",
+        "img/proyectos/highlog/3.webp",
+        "img/proyectos/highlog/4.webp"
+      ],
+      "tags": [
+        "Logistics",
+        "Foreign Trade",
+        "SPA"
+      ],
+      "titulo_modal": "HIGHLOG: INT'L LOGISTICS",
+      "desafio": "Transform the complexity of foreign trade into a fluid digital experience, allowing clients to manage freights, customs, and insurance from a single SPA platform.",
+      "solucion": "Development of a high-performance Single Page Application (SPA) with a focus on speed and visual clarity, integrating tracking modules, dynamic quotations, and express cargo services.",
+      "logros": [
+        "Digitalization of complex customs processes",
+        "Real-time cargo tracking module",
+        "Optimized interface for quotation conversion",
+        "100% responsive structure for on-the-road management"
+      ],
+      "stack": [
+        "Vanilla JavaScript",
+        "Tailwind CSS",
+        "HTML5 Semantic",
+        "SPA Engine",
+        "Performance Optimization"
+      ],
+      "servicios": [
+        "SPA Development",
+        "UI/UX Design",
+        "Logistics Strategy"
+      ]
+    },
+    {
+      "id": "agente-conversacional",
+      "categoria": "AI Logic",
+      "tecnologias_listado": "n8n / OpenAI",
+      "titulo_listado": "AI Sales Agent",
+      "descripcion_listado": "Autonomous conversational agent trained for B2B lead qualification that triples conversion rates.",
+      "url": "",
+      "imagenes": [],
+      "tags": [
+        "AI Logic",
+        "n8n",
+        "RAG"
+      ],
+      "titulo_modal": "Clawbot <br><span class=\"text-light-muted dark:text-dark-muted\">Sales Agent</span>",
+      "desafio": "Sales team spent 70% of their time on unqualified prospects arriving in mass volumes.",
+      "solucion": "Deployed an AI Agent using n8n for orchestration and OpenAI with RAG. Filters and notifies CRM asynchronously.",
+      "logros": [
+        "45% decrease in CAC",
+        "24/7 support with zero latency",
+        "60% increase in deal closures"
+      ],
+      "stack": [
+        "n8n",
+        "OpenAI API",
+        "Pinecone",
+        "HubSpot API"
+      ],
+      "servicios": [
+        "Prompt Engineering",
+        "B2B Automation",
+        "System Integration",
+        "NLP / RAG"
+      ]
+    }
+  ]
+}

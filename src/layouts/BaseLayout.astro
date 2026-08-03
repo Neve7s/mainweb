@@ -1,0 +1,79 @@
+---
+import siteData from '../data/site.json';
+
+interface Props {
+  title: string;
+  description: string;
+  lang?: string;
+  canonicalURL?: string;
+}
+
+const { title, description, lang = 'es', canonicalURL = 'https://hieyson.com/' } = Astro.props;
+
+const ogImage = 'https://hieysoN.com/img/logo/og-image.jpg';
+const { jsonLd } = siteData;
+---
+
+<!DOCTYPE html>
+<html lang={lang} class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonicalURL} />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content={canonicalURL}>
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:image" content={ogImage}>
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content={canonicalURL}>
+  <meta property="twitter:title" content={title}>
+  <meta property="twitter:description" content={description}>
+  <meta property="twitter:image" content={ogImage}>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": jsonLd.name,
+    "url": jsonLd.url,
+    "jobTitle": jsonLd.jobTitle,
+    "sameAs": jsonLd.sameAs,
+    "knowsAbout": jsonLd.knowsAbout
+  })} />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/img/logo/black/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/img/logo/black/favicon.svg" />
+  <link rel="shortcut icon" href="/img/logo/black/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/logo/black/apple-touch-icon.png" />
+  <link rel="manifest" href="/img/logo/black/site.webmanifest" />
+
+  <!-- Theme init script (prevents FOUC) -->
+  <script is:inline>
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+
+  <style>
+    @import '../styles/global.css';
+  </style>
+</head>
+<body class="bg-light-900 dark:bg-dark-900 text-light-accent dark:text-white antialiased font-sans font-light overflow-x-hidden transition-colors duration-500 selection:bg-light-accent selection:text-light-900 dark:selection:bg-white dark:selection:text-black">
+  <slot />
+</body>
+</html>

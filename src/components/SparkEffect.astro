@@ -1,0 +1,135 @@
+---
+// SparkEffect.astro - Mobile-compatible effects via CSS :active + JS delegation
+---
+
+<style is:global>
+  /* Spark pulse — fires on :hover (desktop) + :active (mobile tap) */
+  .spark-pulse {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .spark-pulse::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: radial-gradient(circle at var(--spark-x, 50%) var(--spark-y, 50%), 
+      rgba(255, 255, 255, 0.35) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+    transition: opacity 0.15s ease;
+  }
+
+  .spark-pulse:hover::before {
+    opacity: 1;
+    animation: spark-burst 0.6s ease-out;
+  }
+
+  .spark-pulse:active::before {
+    opacity: 1;
+    animation: spark-burst 0.5s ease-out;
+  }
+
+  @keyframes spark-burst {
+    0% { transform: scale(0); opacity: 1; }
+    50% { opacity: 0.9; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+
+  /* Electric link — underline on hover/active */
+  .electric-link {
+    position: relative;
+    display: inline-block;
+  }
+
+  .electric-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 1px;
+    background: currentColor;
+    transition: width 0.3s ease, left 0.3s ease;
+  }
+
+  .electric-link:hover::after,
+  .electric-link:active::after {
+    width: 100%;
+    left: 0;
+  }
+
+  /* Glow for cards — visible on hover/active */
+  .glow-on-hover {
+    position: relative;
+  }
+
+  .glow-on-hover::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent, rgba(255,255,255,0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .glow-on-hover:hover::before,
+  .glow-on-hover:active::before {
+    opacity: 1;
+  }
+
+  @keyframes float-dot {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+    50% { transform: translateY(-10px) scale(1.2); opacity: 0.6; }
+  }
+
+  .float-dot {
+    animation: float-dot 3s ease-in-out infinite;
+  }
+</style>
+
+<script>
+  function getClosestSpark(el: Element | null): HTMLElement | null {
+    if (!el) return null;
+    if (el.classList?.contains('spark-pulse')) return el as HTMLElement;
+    return el.closest?.('.spark-pulse') as HTMLElement | null;
+  }
+
+  function updateSparkFromPoint(clientX: number, clientY: number) {
+    const el = document.elementFromPoint(clientX, clientY);
+    const spark = getClosestSpark(el);
+    if (spark) {
+      const rect = spark.getBoundingClientRect();
+      const x = ((clientX - rect.left) / rect.width) * 100;
+      const y = ((clientY - rect.top) / rect.height) * 100;
+      spark.style.setProperty('--spark-x', `${x}%`);
+      spark.style.setProperty('--spark-y', `${y}%`);
+    }
+  }
+
+  // Throttled mousemove with rAF
+  let sparkTicking = false;
+  document.addEventListener('mousemove', (e) => {
+    if (sparkTicking) return;
+    sparkTicking = true;
+    requestAnimationFrame(() => {
+      updateSparkFromPoint(e.clientX, e.clientY);
+      sparkTicking = false;
+    });
+  });
+
+  document.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    if (touch) updateSparkFromPoint(touch.clientX, touch.clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    if (touch) updateSparkFromPoint(touch.clientX, touch.clientY);
+  }, { passive: true });
+</script>

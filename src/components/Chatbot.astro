@@ -1,0 +1,345 @@
+---
+// NEURO — Floating AI chat (NVIDIA via Cloudflare Worker) with WhatsApp-style launcher
+interface Props {
+  t: Record<string, string>;
+}
+
+const { t } = Astro.props;
+
+const workerUrl = import.meta.env.PUBLIC_CHAT_WORKER_URL || '';
+
+const chatI18n = {
+  title: t['chat.title'],
+  subtitle: t['chat.subtitle'],
+  greeting: t['chat.greeting'],
+  placeholder: t['chat.placeholder'],
+  send: t['chat.send'],
+  close: t['chat.close'],
+  typing: t['chat.typing'],
+  error: t['chat.error'],
+  retry: t['chat.retry'],
+  quickServices: t['chat.quick.services'],
+  quickPrice: t['chat.quick.price'],
+  quickContact: t['chat.quick.contact'],
+  label: t['chat.label'],
+};
+const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
+---
+
+<div id="chat-root" class="fixed bottom-6 right-6 z-[120]" data-chat-lang={lang}
+  data-chat-url={workerUrl}
+  data-chat-i18n={JSON.stringify(chatI18n)}>
+
+  <!-- Chat panel -->
+  <section id="chat-panel" role="dialog" aria-label={chatI18n.title}
+    class="hidden absolute bottom-[10.25rem] right-0 w-[360px] max-w-[calc(100vw-3rem)] h-[min(500px,58svh)] flex flex-col rounded-2xl border border-light-border dark:border-white/10 bg-white/95 dark:bg-[#0c0d16]/95 backdrop-blur-xl shadow-[0_24px_80px_-16px_rgba(0,0,0,0.35),0_0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[0_24px_80px_-16px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.03)] overflow-hidden"
+    style="transform-origin: bottom right;">
+
+    <!-- Header -->
+    <header class="flex items-center gap-3 px-4 py-3 bg-white/80 dark:bg-[#12141f]/90 border-b border-light-border dark:border-white/[0.07]">
+      <div class="relative">
+        <svg viewBox="0 0 48 48" class="w-10 h-10" aria-hidden="true">
+          <rect x="2" y="4" width="44" height="40" rx="10" fill="#1a1d29" stroke="#2e3448" stroke-width="2"/>
+          <rect x="10" y="14" width="28" height="10" rx="4" fill="#0a0b12" stroke="#3a415c" stroke-width="1.5"/>
+          <circle cx="19" cy="19" r="3.4" fill="#ff2233">
+            <animate attributeName="opacity" values="1;0.55;1" dur="1.8s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="29" cy="19" r="3.4" fill="#ffffff">
+            <animate attributeName="opacity" values="0.55;1;0.55" dur="1.8s" repeatCount="indefinite"/>
+          </circle>
+          <rect x="14" y="30" width="20" height="4" rx="2" fill="#2e3448"/>
+        </svg>
+        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white dark:border-[#12141f]"></span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-light-accent dark:text-white tracking-wide truncate">{chatI18n.title}</p>
+        <p class="text-[11px] text-emerald-600 dark:text-emerald-400/90 font-mono flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
+          {chatI18n.subtitle}
+        </p>
+      </div>
+      <button id="chat-close" type="button" aria-label={chatI18n.close}
+        class="w-8 h-8 rounded-lg flex items-center justify-center text-light-muted dark:text-white/50 hover:text-light-accent dark:hover:text-white hover:bg-light-700 dark:hover:bg-white/10 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Messages -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-3 flex flex-col" aria-live="polite"></div>
+
+    <!-- Quick replies -->
+    <div id="chat-quick" class="px-4 pb-2 flex flex-wrap gap-2"></div>
+
+    <!-- Input -->
+    <form id="chat-form" class="border-t border-light-border dark:border-white/[0.07] bg-white/70 dark:bg-[#0e0f18]/90 p-3 flex items-center gap-2">
+      <input id="chat-input" type="text" autocomplete="off"
+        class="flex-1 min-w-0 bg-light-800 dark:bg-white/[0.05] border border-light-border dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-light-accent dark:text-white placeholder:text-light-muted dark:placeholder:text-white/30 outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 transition-all"
+        placeholder={chatI18n.placeholder} aria-label={chatI18n.placeholder}>
+      <button id="chat-send" type="submit" aria-label={chatI18n.send}
+        class="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(255,34,51,0.5)] transition-all">
+        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m0 0l-6-6m6 6l-6 6"/>
+        </svg>
+      </button>
+    </form>
+  </section>
+
+  <!-- Launcher button -->
+  <button id="chat-launcher" type="button" aria-label={chatI18n.label} aria-haspopup="dialog" aria-expanded="false"
+    class="absolute bottom-[4.75rem] right-0 w-14 h-14 rounded-full bg-white dark:bg-[#161824] border border-light-border dark:border-white/15 flex items-center justify-center hover:scale-105 hover:border-red-500/50 transition-all duration-300 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.45)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] group">
+    <svg viewBox="0 0 48 48" class="w-7 h-7" aria-hidden="true">
+      <rect x="2" y="4" width="44" height="40" rx="10" fill="#232736" stroke="#3a415c" stroke-width="2"/>
+      <rect x="10" y="14" width="28" height="10" rx="4" fill="#0a0b12" stroke="#454e6e" stroke-width="1.5"/>
+      <circle cx="19" cy="19" r="3.4" fill="#ff2233"></circle>
+      <circle cx="29" cy="19" r="3.4" fill="#ffffff"></circle>
+      <rect x="14" y="30" width="20" height="4" rx="2" fill="#3a415c"/>
+    </svg>
+    <span class="absolute inset-0 rounded-full border border-red-500/40 animate-ping opacity-0 group-hover:opacity-30 pointer-events-none"></span>
+    <span class="absolute right-full mr-3 px-3 py-1 bg-black/85 text-white text-[10px] font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap rounded-md">AI Chat</span>
+    <span id="chat-unread" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">1</span>
+  </button>
+</div>
+
+<style is:global>
+  :root {
+    --chat-bubble-bot-bg: rgba(255, 255, 255, 0.9);
+    --chat-bubble-bot-border: rgba(0, 0, 0, 0.08);
+    --chat-bubble-bot-text: #111827;
+    --chat-avatar-bg: #ffffff;
+    --chat-avatar-border: #e2e8f0;
+    --chat-typing-dot: #64748b;
+    --chat-chip-text: #475569;
+    --chat-chip-border: rgba(0, 0, 0, 0.14);
+    --chat-chip-bg: rgba(0, 0, 0, 0.03);
+  }
+  .dark {
+    --chat-bubble-bot-bg: rgba(255, 255, 255, 0.06);
+    --chat-bubble-bot-border: rgba(255, 255, 255, 0.08);
+    --chat-bubble-bot-text: rgba(255, 255, 255, 0.9);
+    --chat-avatar-bg: #161824;
+    --chat-avatar-border: #2e3448;
+    --chat-typing-dot: rgba(255, 255, 255, 0.6);
+    --chat-chip-text: rgba(255, 255, 255, 0.75);
+    --chat-chip-border: rgba(255, 255, 255, 0.15);
+    --chat-chip-bg: rgba(255, 255, 255, 0.04);
+  }
+
+  #chat-panel.open { display: flex; }
+  #chat-panel:not(.open) { display: none; }
+  .chat-msg { display: flex; align-items: flex-end; gap: 8px; max-width: 88%; }
+  .chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .chat-msg .chat-bubble {
+    padding: 9px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.45;
+    word-break: break-word; white-space: pre-wrap;
+  }
+  .chat-msg.bot .chat-bubble {
+    background: var(--chat-bubble-bot-bg); border: 1px solid var(--chat-bubble-bot-border);
+    color: var(--chat-bubble-bot-text); border-bottom-left-radius: 4px;
+  }
+  .chat-msg.user .chat-bubble {
+    background: linear-gradient(135deg, #c81e2e, #ff2233); border: 1px solid rgba(255,80,90,0.35);
+    color: #fff; border-bottom-right-radius: 4px;
+  }
+  .chat-avatar { width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0; background: var(--chat-avatar-bg); border: 1px solid var(--chat-avatar-border); display: flex; align-items: center; justify-content: center; }
+  .chat-typing { display: inline-flex; gap: 4px; padding: 12px 14px; }
+  .chat-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--chat-typing-dot); animation: chatBounce 1.2s infinite; }
+  .chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes chatBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
+  .chat-chip {
+    font-size: 11.5px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--chat-chip-border);
+    color: var(--chat-chip-text); background: var(--chat-chip-bg); cursor: pointer; transition: all 0.2s;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .chat-chip:hover { border-color: rgba(255,34,51,0.6); color: #111827; background: rgba(255,34,51,0.1); }
+  .dark .chat-chip:hover { color: #fff; background: rgba(255,34,51,0.12); }
+  @media (prefers-reduced-motion: reduce) {
+    .chat-typing span { animation: none; }
+  }
+</style>
+
+<script>
+  interface ChatI18n {
+    title: string; subtitle: string; greeting: string; placeholder: string; send: string;
+    close: string; typing: string; error: string; retry: string;
+    quickServices: string; quickPrice: string; quickContact: string; label: string;
+  }
+
+  const root = document.getElementById('chat-root');
+  const panel = document.getElementById('chat-panel');
+  const launcher = document.getElementById('chat-launcher');
+  const closeBtn = document.getElementById('chat-close');
+  const messagesEl = document.getElementById('chat-messages');
+  const quickEl = document.getElementById('chat-quick');
+  const form = document.getElementById('chat-form') as HTMLFormElement;
+  const input = document.getElementById('chat-input') as HTMLInputElement;
+  const sendBtn = document.getElementById('chat-send') as HTMLButtonElement;
+  const unread = document.getElementById('chat-unread');
+
+  if (!root || !panel || !launcher || !messagesEl) throw new Error('chat root missing');
+
+  const lang = root.dataset.chatLang || 'es';
+  const i18n: ChatI18n = JSON.parse(root.dataset.chatI18n || '{}');
+  const workerUrl = root.dataset.chatUrl || '';
+
+  const history: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+  let pending = false;
+  let greeted = false;
+
+  const robotSvg = `<svg viewBox="0 0 48 48" class="w-4 h-4"><circle cx="19" cy="19" r="4" fill="#ff2233"/><circle cx="29" cy="19" r="4" fill="#fff"/><rect x="12" y="30" width="24" height="5" rx="2.5" fill="#3a415c"/></svg>`;
+
+  function appendMessage(role: 'user' | 'assistant', text: string) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `chat-msg ${role}`;
+    if (role === 'bot') {
+      const avatar = document.createElement('span');
+      avatar.className = 'chat-avatar';
+      avatar.innerHTML = robotSvg;
+      wrapper.appendChild(avatar);
+    }
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.textContent = text;
+    wrapper.appendChild(bubble);
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    history.push({ role, content: text });
+    return wrapper;
+  }
+
+  function showTyping(): HTMLElement {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'chat-msg bot';
+    const avatar = document.createElement('span');
+    avatar.className = 'chat-avatar';
+    avatar.innerHTML = robotSvg;
+    wrapper.appendChild(avatar);
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble chat-typing';
+    bubble.innerHTML = `<span></span><span></span><span></span>`;
+    bubble.setAttribute('aria-label', i18n.typing);
+    wrapper.appendChild(bubble);
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return wrapper;
+  }
+
+  function showQuickReplies() {
+    const labels = [i18n.quickServices, i18n.quickPrice, i18n.quickContact];
+    quickEl.innerHTML = '';
+    labels.forEach((label) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chat-chip';
+      chip.textContent = label;
+      chip.addEventListener('click', () => {
+        input.value = label;
+        submitMessage();
+      });
+      quickEl.appendChild(chip);
+    });
+  }
+
+  function hideQuickReplies() {
+    quickEl.innerHTML = '';
+  }
+
+  async function askAI() {
+    pending = true;
+    sendBtn.disabled = true;
+    const typingEl = showTyping();
+
+    try {
+      const res = await fetch(workerUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history.slice(-20), lang }),
+      });
+      const data = await res.json().catch(() => null);
+      typingEl.remove();
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+      appendMessage('assistant', data.reply);
+    } catch {
+      typingEl.remove();
+      const wrapper = document.createElement('div');
+      wrapper.className = 'chat-msg bot';
+      const avatar = document.createElement('span');
+      avatar.className = 'chat-avatar';
+      avatar.innerHTML = robotSvg;
+      wrapper.appendChild(avatar);
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble';
+      bubble.textContent = i18n.error;
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'chat-chip ml-2';
+      retry.textContent = i18n.retry;
+      retry.addEventListener('click', () => {
+        history.pop();
+        askAI();
+      });
+      bubble.appendChild(retry);
+      wrapper.appendChild(bubble);
+      messagesEl.appendChild(wrapper);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    } finally {
+      pending = false;
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  async function submitMessage() {
+    const text = input.value.trim();
+    if (!text || pending) return;
+    input.value = '';
+    hideQuickReplies();
+    appendMessage('user', text);
+    await askAI();
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitMessage();
+  });
+
+  function openChat() {
+    panel.classList.add('open');
+    launcher.setAttribute('aria-expanded', 'true');
+    launcher.classList.add('hidden');
+    if (unread) unread.classList.add('hidden');
+    if (!greeted) {
+      greeted = true;
+      appendMessage('assistant', i18n.greeting);
+      showQuickReplies();
+    }
+    setTimeout(() => input.focus(), 60);
+  }
+
+  function closeChat() {
+    panel.classList.remove('open');
+    launcher.setAttribute('aria-expanded', 'false');
+    launcher.classList.remove('hidden');
+  }
+
+  launcher.addEventListener('click', openChat);
+  closeBtn?.addEventListener('click', closeChat);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel.classList.contains('open')) {
+      closeChat();
+      launcher.focus();
+    }
+  });
+
+  document.addEventListener('open-chat', () => openChat());
+
+  // Initial teaser message
+  setTimeout(() => {
+    if (!panel.classList.contains('open') && unread) {
+      unread.classList.remove('hidden');
+    }
+  }, 9000);
+</script>

@@ -1,0 +1,296 @@
+---
+const t = Astro.props.t;
+
+const techCategories = [
+  {
+    titleKey: 'tech.cat.frontend',
+    direction: 'left',
+    items: [
+      { name: 'React', src: 'https://api.iconify.design/logos:react.svg' },
+      { name: 'Next.js', src: 'https://api.iconify.design/logos:nextjs-icon.svg' },
+      { name: 'Astro', src: 'https://api.iconify.design/logos:astro-icon.svg' },
+      { name: 'Vue', src: 'https://api.iconify.design/logos:vue.svg' },
+      { name: 'Svelte', src: 'https://api.iconify.design/logos:svelte-icon.svg' },
+      { name: 'Tailwind CSS', src: 'https://api.iconify.design/logos:tailwindcss-icon.svg' },
+      { name: 'JavaScript', src: 'https://api.iconify.design/logos:javascript.svg' },
+      { name: 'TypeScript', src: 'https://api.iconify.design/logos:typescript-icon.svg' },
+      { name: 'HTML5', src: 'https://api.iconify.design/logos:html-5.svg' },
+      { name: 'CSS3', src: 'https://api.iconify.design/logos:css-3.svg' },
+      { name: 'Bootstrap', src: 'https://api.iconify.design/logos:bootstrap.svg' },
+      { name: 'HTMX', src: 'https://api.iconify.design/simple-icons:htmx.svg?color=3b82f6' },
+    ]
+  },
+  {
+    titleKey: 'tech.cat.backend',
+    direction: 'right',
+    items: [
+      { name: 'Node.js', src: 'https://api.iconify.design/logos:nodejs-icon.svg' },
+      { name: 'Python', src: 'https://api.iconify.design/logos:python.svg' },
+      { name: 'Django', src: 'https://api.iconify.design/logos:django-icon.svg' },
+      { name: 'Laravel', src: 'https://api.iconify.design/logos:laravel.svg' },
+      { name: 'PHP', src: 'https://api.iconify.design/logos:php.svg' },
+      { name: 'Express', src: 'https://api.iconify.design/simple-icons:express.svg?color=555555', darkSrc: 'https://api.iconify.design/simple-icons:express.svg?color=888888' },
+      { name: 'FastAPI', src: 'https://api.iconify.design/logos:fastapi-icon.svg' },
+      { name: 'Flask', src: 'https://api.iconify.design/simple-icons:flask.svg?color=555555', darkSrc: 'https://api.iconify.design/simple-icons:flask.svg?color=888888' },
+      { name: '.NET', src: 'https://api.iconify.design/logos:dotnet.svg' },
+    ]
+  },
+  {
+    titleKey: 'tech.cat.databases',
+    direction: 'left',
+    items: [
+      { name: 'MongoDB', src: 'https://api.iconify.design/logos:mongodb-icon.svg' },
+      { name: 'PostgreSQL', src: 'https://api.iconify.design/logos:postgresql.svg' },
+      { name: 'MySQL', src: 'https://api.iconify.design/logos:mysql-icon.svg' },
+      { name: 'Supabase', src: 'https://api.iconify.design/logos:supabase-icon.svg' },
+      { name: 'Redis', src: 'https://api.iconify.design/logos:redis.svg' },
+      { name: 'Firebase', src: 'https://api.iconify.design/logos:firebase.svg' },
+      { name: 'Elasticsearch', src: 'https://api.iconify.design/logos:elasticsearch.svg' },
+      { name: 'SQLite', src: 'https://api.iconify.design/logos:sqlite.svg' },
+    ]
+  },
+  {
+    titleKey: 'tech.cat.ai',
+    direction: 'right',
+    items: [
+      { name: 'n8n', src: 'https://api.iconify.design/simple-icons:n8n.svg?color=ea4b71' },
+      { name: 'OpenAI', src: 'https://api.iconify.design/simple-icons:openai.svg?color=412991', darkSrc: 'https://api.iconify.design/logos:openai-icon.svg' },
+      { name: 'Anthropic', src: 'https://api.iconify.design/simple-icons:anthropic.svg?color=d97757', darkSrc: 'https://api.iconify.design/logos:anthropic-icon.svg' },
+      { name: 'LangChain', src: 'https://api.iconify.design/simple-icons:langchain.svg?color=333333', darkSrc: 'https://api.iconify.design/simple-icons:langchain.svg?color=c0c0c0' },
+      { name: 'Hugging Face', src: 'https://api.iconify.design/logos:hugging-face-icon.svg' },
+      { name: 'CrewAI', src: 'https://api.iconify.design/simple-icons:crewai.svg?color=333333', darkSrc: 'https://api.iconify.design/simple-icons:crewai.svg?color=c0c0c0' },
+      { name: 'Gemini', src: 'https://api.iconify.design/logos:google-gemini.svg' },
+      { name: 'Ollama', src: 'https://api.iconify.design/simple-icons:ollama.svg?color=333333', darkSrc: 'https://api.iconify.design/simple-icons:ollama.svg?color=c0c0c0' },
+    ]
+  },
+  {
+    titleKey: 'tech.cat.devops',
+    direction: 'left',
+    items: [
+      { name: 'Docker', src: 'https://api.iconify.design/logos:docker-icon.svg' },
+      { name: 'Kubernetes', src: 'https://api.iconify.design/logos:kubernetes.svg' },
+      { name: 'Terraform', src: 'https://api.iconify.design/logos:terraform-icon.svg' },
+      { name: 'Linux', src: 'https://api.iconify.design/simple-icons:linux.svg?color=333333', darkSrc: 'https://api.iconify.design/logos:linux-tux.svg' },
+      { name: 'Git', src: 'https://api.iconify.design/logos:git-icon.svg' },
+      { name: 'GitHub', src: 'https://api.iconify.design/simple-icons:github.svg?color=333333', darkSrc: 'https://api.iconify.design/logos:github-icon.svg' },
+      { name: 'GitHub Actions', src: 'https://api.iconify.design/simple-icons:githubactions.svg?color=333333', darkSrc: 'https://api.iconify.design/logos:github-actions.svg' },
+      { name: 'Nginx', src: 'https://api.iconify.design/logos:nginx.svg' },
+      { name: 'Cloudflare', src: 'https://api.iconify.design/logos:cloudflare.svg' },
+      { name: 'Vercel', src: 'https://api.iconify.design/simple-icons:vercel.svg?color=333333', darkSrc: 'https://api.iconify.design/logos:vercel-icon.svg' },
+      { name: 'AWS', src: 'https://api.iconify.design/logos:aws.svg' },
+    ]
+  },
+];
+---
+
+<section id="tech-stack" class="py-32 border-t border-light-border dark:border-dark-border relative transition-colors duration-500 overflow-hidden">
+  <div class="max-w-7xl mx-auto px-6 lg:px-24">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-20" data-animate>
+      <div>
+        <span class="text-xs font-mono tracking-[0.2em] text-light-muted dark:text-dark-muted uppercase mb-4 block transition-colors">{t['tech.num']}</span>
+        <h2 class="text-4xl md:text-5xl font-display font-bold uppercase tracking-tighter text-light-accent dark:text-white transition-colors">
+          <span>{t['tech.title_1']} </span><br>
+          <span class="text-light-muted dark:text-dark-muted transition-colors">{t['tech.title_2']}</span>
+        </h2>
+      </div>
+      <p class="text-gray-600 dark:text-gray-400 font-light max-w-sm mt-6 md:mt-0 text-sm transition-colors">{t['tech.desc']}</p>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-6">
+    {techCategories.map((cat, idx) => (
+      <div class="tech-marquee-row" data-animate style={`animation-delay: ${idx * 0.08}s`}>
+        <div class="tech-marquee-label">
+          <span>{t[cat.titleKey]}</span>
+        </div>
+        <div class={`tech-marquee-track ${cat.direction === 'right' ? 'marquee-right' : 'marquee-left'}`}>
+          <div class="tech-marquee-content">
+            {[...cat.items, ...cat.items].map(item => (
+              <div class="tech-marquee-item group" title={item.name}>
+                <img
+                  src={item.src}
+                  data-dark-src={'darkSrc' in item ? item.darkSrc : undefined}
+                  alt={item.name}
+                  class="w-7 h-7 filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                  loading="lazy" />
+                <span class="tech-marquee-name">{item.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .tech-marquee-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .tech-marquee-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    padding-left: 1.5rem;
+    background: linear-gradient(to right, var(--color-light-900) 60%, transparent);
+    pointer-events: none;
+  }
+
+  :global(.dark) .tech-marquee-label {
+    background: linear-gradient(to right, var(--color-dark-900) 60%, transparent);
+  }
+
+  .tech-marquee-label span {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-light-muted);
+    white-space: nowrap;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--color-light-border);
+    border-radius: 4px;
+    background: var(--color-light-900);
+    transition: color 0.3s, border-color 0.3s, background 0.3s;
+  }
+
+  :global(.dark) .tech-marquee-label span {
+    color: var(--color-dark-muted);
+    border-color: var(--color-dark-border);
+    background: var(--color-dark-900);
+  }
+
+  .tech-marquee-track {
+    width: 100%;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+  }
+
+  .tech-marquee-content {
+    display: flex;
+    gap: 2rem;
+    width: max-content;
+    animation: marquee-left 40s linear infinite;
+  }
+
+  .marquee-right .tech-marquee-content {
+    animation-name: marquee-right;
+  }
+
+  .tech-marquee-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-light-border);
+    background: var(--color-light-900);
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  :global(.dark) .tech-marquee-item {
+    border-color: var(--color-dark-border);
+    background: var(--color-dark-800);
+  }
+
+  .tech-marquee-item:hover {
+    border-color: var(--color-light-muted);
+    transform: translateY(-2px);
+  }
+
+  :global(.dark) .tech-marquee-item:hover {
+    border-color: var(--color-dark-muted);
+  }
+
+  .tech-marquee-name {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    color: var(--color-light-muted);
+    transition: color 0.3s;
+  }
+
+  :global(.dark) .tech-marquee-name {
+    color: var(--color-dark-muted);
+  }
+
+  .tech-marquee-item:hover .tech-marquee-name {
+    color: var(--color-light-accent);
+  }
+
+  :global(.dark) .tech-marquee-item:hover .tech-marquee-name {
+    color: white;
+  }
+
+  .tech-marquee-item:hover img {
+    filter: grayscale(0);
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  @keyframes marquee-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @keyframes marquee-right {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tech-marquee-content {
+      animation: none !important;
+    }
+  }
+</style>
+
+<script>
+  function applyDarkIcons() {
+    const isDark = document.documentElement.classList.contains('dark');
+    document.querySelectorAll('#tech-stack img[data-dark-src]').forEach((img) => {
+      const el = img as HTMLImageElement;
+      if (!el.dataset.lightSrc) {
+        el.dataset.lightSrc = el.src;
+      }
+      if (isDark && el.dataset.darkSrc) {
+        el.src = el.dataset.darkSrc;
+      } else if (el.dataset.lightSrc) {
+        el.src = el.dataset.lightSrc;
+      }
+    });
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.attributeName === 'class') {
+        applyDarkIcons();
+      }
+    }
+  });
+
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  applyDarkIcons();
+</script>

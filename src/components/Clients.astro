@@ -1,0 +1,36 @@
+---
+const t = Astro.props.t;
+---
+
+<section id="clients-section" class="py-16 border-t border-light-border dark:border-dark-border bg-light-900/80 dark:bg-dark-900/80 backdrop-blur-md overflow-hidden transition-colors duration-500">
+  <div class="max-w-7xl mx-auto px-6 lg:px-12 mb-8">
+    <span class="text-[10px] font-mono tracking-[0.2em] text-light-muted dark:text-dark-muted uppercase block text-center transition-colors">{t['clients.title']}</span>
+  </div>
+
+  <!-- Infinite CSS Marquee -->
+  <div class="relative flex overflow-x-hidden group">
+    <div id="clients-track" class="animate-marquee group-hover:[animation-play-state:paused] whitespace-nowrap flex items-center w-max gap-16 py-4 opacity-40 hover:opacity-100 transition-opacity duration-500">
+      <!-- Loaded client-side -->
+    </div>
+  </div>
+</section>
+
+<script>
+  import clientsData from '../data/jsons/Clientes.json';
+
+  const track = document.getElementById('clients-track');
+  if (track) {
+    const clients = clientsData.clientes || [];
+    const html = clients.map((client: any) => {
+      const imgSrc = client.Icono || `https://ui-avatars.com/api/?name=${encodeURIComponent(client.Compañia)}&background=random&color=fff&size=200&font-size=0.4&format=svg`;
+      return `
+        <a href="${client.url || '#'}" class="flex items-center shrink-0 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+          <img src="${imgSrc}" alt="${client.Compañia}" class="h-10 w-auto" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(client.Compañia)}&background=random&color=fff&size=200&font-size=0.4&format=svg'" loading="lazy" />
+        </a>
+      `;
+    }).join('');
+    
+    // Repeat enough times to fill viewport (3 clients × 6 = 18 items)
+    track.innerHTML = Array(6).fill(html).join('');
+  }
+</script>
