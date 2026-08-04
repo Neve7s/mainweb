@@ -283,8 +283,8 @@ const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
 
   function appendMessage(role: 'user' | 'assistant', text: string) {
     const wrapper = document.createElement('div');
-    wrapper.className = `chat-msg ${role}`;
-    if (role === 'bot') {
+    wrapper.className = `chat-msg ${role === 'assistant' ? 'bot' : 'user'}`;
+    if (role === 'assistant') {
       const avatar = document.createElement('span');
       avatar.className = 'chat-avatar';
       avatar.innerHTML = robotSvg;
@@ -292,7 +292,7 @@ const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
     }
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble';
-    if (role === 'bot') {
+    if (role === 'assistant') {
       bubble.innerHTML = renderMarkdown(text);
     } else {
       bubble.textContent = text;

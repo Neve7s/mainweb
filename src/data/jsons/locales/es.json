@@ -58,7 +58,7 @@
   "chat.close": "Cerrar chat",
   "chat.clear": "Limpiar chat",
   "chat.typing": "NOSYEIH está escribiendo...",
-  "chat.error": "Ups, no pude conectar con la IA. Intenta de nuevo.",
+  "chat.error": "Ups, no pude conectar con la IA. Intenta de nuevo.",,
   "chat.retry": "Reintentar",
   "chat.quick.services": "¿Qué servicios ofrecen?",
   "chat.quick.price": "¿Cuánto cuesta una web?",
