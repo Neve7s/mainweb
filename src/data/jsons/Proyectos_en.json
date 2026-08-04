@@ -8,6 +8,7 @@
       "descripcion_listado": "Digital control tower for international cargo management. Streamlines tracking and quoting, eliminating operational chaos.",
       "url": "https://app.logia.lat",
       "imagenes": [
+        "img/proyectos/logia/abclogia.png",
         "img/proyectos/logia/dashboard.webp",
         "img/proyectos/logia/configuracion.webp",
         "img/proyectos/logia/cotizador.webp",
@@ -159,7 +160,9 @@
       "titulo_listado": "AI Sales Agent",
       "descripcion_listado": "Autonomous conversational agent trained for B2B lead qualification that triples conversion rates.",
       "url": "",
-      "imagenes": [],
+      "imagenes": [
+        "img/proyectos/chatbotsIA/chatbot1.png"
+      ],
       "tags": [
         "AI Logic",
         "n8n",
