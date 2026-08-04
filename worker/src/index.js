@@ -7,8 +7,9 @@ const NVIDIA_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 const DEFAULT_MODELS = [
   'nvidia/llama-3.3-nemotron-super-49b-v1',
-  'nemotron-3-8b-instruct',
-];const RATE_LIMIT = 12;
+  'nvidia/nemotron-mini-4b-instruct',
+];
+const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 60_000;
 const ipHits = new Map();
 
@@ -112,7 +113,7 @@ async function callNvidia(env, messages) {
           max_tokens: 600,
           stream: false,
         }),
-        signal: AbortSignal.timeout(30_000),
+        signal: AbortSignal.timeout(20_000),
       });
 
       if (!res.ok) {
