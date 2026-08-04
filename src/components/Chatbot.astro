@@ -412,6 +412,19 @@ const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
 
   document.addEventListener('open-chat', () => openChat());
 
+  // Auto-open 5 seconds after entering the site (once per session)
+  let autoOpened = false;
+  try {
+    autoOpened = sessionStorage.getItem('neuro-chat-auto-opened') === '1';
+  } catch {}
+  setTimeout(() => {
+    if (!autoOpened && !panel.classList.contains('open')) {
+      autoOpened = true;
+      try { sessionStorage.setItem('neuro-chat-auto-opened', '1'); } catch {}
+      openChat();
+    }
+  }, 5000);
+
   // Initial teaser message
   setTimeout(() => {
     if (!panel.classList.contains('open') && unread) {

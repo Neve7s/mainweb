@@ -6,8 +6,9 @@
       "tecnologias_listado": "Django & Python",
       "titulo_listado": "LogIA: Software para agencias de carga",
       "descripcion_listado": "Torre de control digital para la gestión de cargas internacionales. Agiliza rastreos y cotizaciones eliminando el caos operativo.",
-      "url": "https://app.logia.lat",
+      "url": "https://logia.lat",
       "imagenes": [
+        "img/proyectos/logia/abclogia.png",
         "img/proyectos/logia/dashboard.webp",
         "img/proyectos/logia/configuracion.webp",
         "img/proyectos/logia/cotizador.webp",
@@ -159,7 +160,9 @@
       "titulo_listado": "Agente de ventas con inteligencia artificial",
       "descripcion_listado": "Agente conversacional autónomo entrenado para calificación de leads B2B que triplica la tasa de conversión.",
       "url": "",
-      "imagenes": [],
+      "imagenes": [
+        "img/proyectos/chatbotsIA/chatbot1.png"
+      ],
       "tags": [
         "AI Logic",
         "n8n",
