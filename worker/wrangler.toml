@@ -3,6 +3,7 @@ main = "src/index.js"
 compatibility_date = "2025-06-01"
 
 [vars]
-NVIDIA_MODEL = "nvidia/nemotron-mini-4b-instruct"
+NVIDIA_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
+NVIDIA_MODELS = "nvidia/llama-3.3-nemotron-super-49b-v1,nvidia/nemotron-mini-4b-instruct"
 
 # Entorno local: copia .dev.vars.example a .dev.vars y pon tu NVIDIA_API_KEY
