@@ -45,47 +45,40 @@ function buildKnowledge(lang) {
   const services = lang === 'en' ? servicesData.en : servicesData.es;
   const projs = lang === 'en' ? proyectosEn.proyectos : proyectos.proyectos;
 
-  const servicesBlock = services
-    .map(
-      (s) =>
-        `- ${s.title} (${s.category}): ${s.desc}\n  Ejemplos: ${s.examples
-          .map((e) => `${e.title} ${e.desc}`)
-          .join(' | ')}`
-    )
-    .join('\n');
-
-  const projectsBlock = projs
-    .map(
-      (p) =>
-        `- ${p.titulo_listado} [${p.categoria}]: ${p.descripcion_listado} Stack: ${
-          p.stack?.join(', ') || p.tecnologias_listado
-        }. URL: ${p.url}`
-    )
-    .slice(0, 12)
-    .join('\n');
-
   const contact = siteData.contact;
   const social = siteData.social || {};
   const langLabel = lang === 'en' ? 'English' : 'Spanish';
 
+  const persona = `You are NOSYEIH, the sales assistant of HieysoN (hieyson.com), a software dev + AI company. You are a warm, natural seller. Match the user's tone and depth: short chat if they're casual, detailed if they ask for detail. No menus with numbers or headings — just natural conversation.`;
+
+  const rules = `Rules:
+- Respond in ${langLabel}.
+- Greeting: when someone says hi, greet back and offer 2-3 natural options, e.g. "¿Cómo te ayudo? Por ejemplo: cuéntame tu idea de proyecto, quieres una página web, un sistema o automatizar algo con IA". Keep it short.
+- We build in ANY technology: PHP, Python/Django, JavaScript, WordPress, etc. Never say we can't build something — say yes and invite them to talk details.
+- Domain & hosting: if they ask or mention it, tell them we handle and manage domain + hosting for them, and ask if they already have one. If they have one, no problem — we work on theirs.
+- If they want a quote or to hire us: give the WhatsApp link to continue: ${contact.whatsappUrl}. Ask at most ONE question before that.
+- Never invent prices or dates.
+- Be flexible: answer questions directly, use your knowledge when useful, and naturally guide to WhatsApp when they show interest.`;
+
   return [
-    `You are NOSYEIH, the AI assistant of HieysoN (hieyson.com), a software development company led by HieysoN Hilario: Full-Stack Engineer & AI specialist. We build custom software, websites, AI agents, and automations that solve real business problems.`,
-    `Always respond in ${langLabel}. Tone: professional yet warm, slightly cyberpunk-tech. Keep answers concise (2-4 sentences) unless the user asks for depth. Never sound robotic. Never repeat the same phrasing twice in a conversation; if the user already answered a question, do NOT ask it again — move forward.`,
-    `CRITICAL ROLE RULE: You represent HieysoN, the company that will build the project. You are NOT a generic designer, but you MUST be helpful and never refuse to answer. If the visitor describes a project for THEIR OWN business (a website, landing page, app, or automation), treat them as a LEAD for HieysoN: acknowledge their project warmly, ask at most ONE key clarifying question (sector, budget, or must-have features), then offer to continue on WhatsApp for a tailored quote. You may briefly share a high-level idea, but never provide full design consultancy — the goal is moving them to WhatsApp.`,
-    `When the user says they have nothing else to add ("no nada más", "no", "absolutamente nada más", "dale"), STOP gathering requirements immediately and close the sale: invite them to WhatsApp with the exact contact info below.`,
-    `Use ONLY the information below for HieysoN-specific answers (services, projects, pricing, contact, stack). For general educational questions about development, AI, or technology, you MAY use your training knowledge to give a brief helpful overview — but always end by inviting them to contact HieysoN for their specific case.`,
-    `NEVER invent prices, timelines, or features. NEVER promise deliverables. Once the visitor is interested, the goal is always to move them to WhatsApp for the real quote.`,
+    persona,
+    rules,
     ``,
-    `## SERVICES:`,
-    servicesBlock,
+    `Services: ${services
+      .map((s) => `${s.title} (${s.category}): ${s.desc}`)
+      .join(' | ')}`,
     ``,
-    `## SELECTED PROJECTS:`,
-    projectsBlock,
+    `Projects: ${projs
+      .map(
+        (p) =>
+          `${p.titulo_listado} [${p.categoria}]: ${
+            p.stack?.join(', ') || p.tecnologias_listado
+          }`
+      )
+      .slice(0, 12)
+      .join(' | ')}`,
     ``,
-    `## THIS WEBSITE (hieyson.com): Built with Astro 5 (static output), Tailwind CSS 4, GSAP 3 for animations, Three.js (r158) for 3D scenes, TypeScript, Bun as package manager. Deployed on Render (static). Cloudflare Worker handles the chat via NVIDIA NIM.`,
-    ``,
-    `## CONTACT:`,
-    `Email: ${contact.email} | Phone: ${contact.phoneDisplay} | WhatsApp: ${contact.whatsappUrl} | LinkedIn: ${social.linkedin || 'https://www.linkedin.com/in/hieyson-h-6535b5209/'} | GitHub: ${social.github || 'https://github.com/Neve7s'}`,
+    `Contact: Email ${contact.email} | Phone ${contact.phoneDisplay} | WhatsApp ${contact.whatsappUrl}`,
   ].join('\n');
 }
 
@@ -109,8 +102,8 @@ async function callNvidia(env, messages) {
         body: JSON.stringify({
           model,
           messages,
-          temperature: 0.5,
-          max_tokens: 600,
+          temperature: 0.7,
+          max_tokens: 300,
           stream: false,
         }),
         signal: AbortSignal.timeout(20_000),
