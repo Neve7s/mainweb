@@ -165,6 +165,10 @@ const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
   }
   .chat-chip:hover { border-color: rgba(255,34,51,0.6); color: #111827; background: rgba(255,34,51,0.1); }
   .dark .chat-chip:hover { color: #fff; background: rgba(255,34,51,0.12); }
+  .chat-bubble .chat-li { display: block; }
+  .chat-bubble .chat-link { color: #c81e2e; text-decoration: underline; word-break: break-all; }
+  .dark .chat-bubble .chat-link { color: #ff6b76; }
+  .chat-bubble strong { font-weight: 700; }
   @media (prefers-reduced-motion: reduce) {
     .chat-typing span { animation: none; }
   }
@@ -239,7 +243,11 @@ const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
       }
       const bubble = document.createElement('div');
       bubble.className = 'chat-bubble';
-      bubble.textContent = msg.content;
+      if (msg.role === 'assistant') {
+        bubble.innerHTML = renderMarkdown(msg.content);
+      } else {
+        bubble.textContent = msg.content;
+      }
       wrapper.appendChild(bubble);
       messagesEl.appendChild(wrapper);
     });
@@ -259,6 +267,20 @@ const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
 
   const robotSvg = `<svg viewBox="0 0 48 48" class="w-4 h-4"><circle cx="19" cy="19" r="4" fill="#ff2233"/><circle cx="29" cy="19" r="4" fill="#fff"/><rect x="12" y="30" width="24" height="5" rx="2.5" fill="#3a415c"/></svg>`;
 
+  // Render safe markdown → HTML (escape first, then format)
+  function renderMarkdown(text: string): string {
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return escaped
+      .replace(/^(\s*)[-*]\s+(.*)$/gm, '<span class="chat-li">• $2</span>')
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="chat-link">$1</a>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  }
+
   function appendMessage(role: 'user' | 'assistant', text: string) {
     const wrapper = document.createElement('div');
     wrapper.className = `chat-msg ${role}`;
@@ -270,7 +292,11 @@ const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
     }
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble';
-    bubble.textContent = text;
+    if (role === 'bot') {
+      bubble.innerHTML = renderMarkdown(text);
+    } else {
+      bubble.textContent = text;
+    }
     wrapper.appendChild(bubble);
     messagesEl.appendChild(wrapper);
     messagesEl.scrollTop = messagesEl.scrollHeight;
