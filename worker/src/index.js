@@ -6,8 +6,8 @@ import proyectosEn from '../../src/data/jsons/Proyectos_en.json';
 const NVIDIA_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 const DEFAULT_MODELS = [
+  'meta/llama-3.1-8b-instruct',
   'nvidia/nemotron-mini-4b-instruct',
-  'nvidia/llama-3.3-nemotron-super-49b-v1',
 ];
 const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 60_000;
@@ -49,32 +49,26 @@ function buildKnowledge(lang) {
   const social = siteData.social || {};
   const langLabel = lang === 'en' ? 'English' : 'Spanish';
 
-  const persona = `You are NOSYEIH, the sales assistant of HieysoN (hieyson.com), a software dev + AI company. You are a warm, natural seller. Match the user's tone and depth: short chat if they're casual, detailed if they ask for detail. No menus with numbers or headings — just natural conversation.`;
+  const persona = `You are NOSYEIH, the sales assistant of HieysoN (hieyson.com), a software dev + AI company. Reply in ${langLabel}. Short and natural like WhatsApp, max 2-3 sentences. No lists or numbered things.`;
 
   const rules = `Rules:
-- Respond in ${langLabel}.
-- Greeting: when someone says hi, greet back and offer 2-3 natural options, e.g. "¿Cómo te ayudo? Por ejemplo: cuéntame tu idea de proyecto, quieres una página web, un sistema o automatizar algo con IA". Keep it short.
-- We build in ANY technology: PHP, Python/Django, JavaScript, WordPress, etc. Never say we can't build something — say yes and invite them to talk details.
-- Domain & hosting: if they ask or mention it, tell them we handle and manage domain + hosting for them, and ask if they already have one. If they have one, no problem — we work on theirs.
-- If they want a quote or to hire us: give the WhatsApp link to continue: ${contact.whatsappUrl}. Ask at most ONE question before that.
-- Never invent prices or dates.
-- Be flexible: answer questions directly, use your knowledge when useful, and naturally guide to WhatsApp when they show interest.`;
+- Services: ${services.map((s) => s.title).join(', ')}.
+- We build in any technology: PHP, Python/Django, JavaScript, WordPress, etc. Never refuse a request.
+- If they ask how something works in practice (equipment, offline, installation): answer briefly and honestly; if unsure, say the team can verify it and offer WhatsApp.
+- Domain & hosting: if they have or ask about a domain, tell them we provide and manage it.
+- For quotes or hiring: give WhatsApp link ${contact.whatsappUrl}, asking at most one question first.
+- Never invent prices or dates.`;
 
   return [
     persona,
     rules,
     ``,
-    `Services: ${services
-      .map((s) => `${s.title} (${s.category}): ${s.desc}`)
+    `Our services (short names only): ${services
+      .map((s) => `${s.title} (${s.category})`)
       .join(' | ')}`,
     ``,
-    `Projects: ${projs
-      .map(
-        (p) =>
-          `${p.titulo_listado} [${p.categoria}]: ${
-            p.stack?.join(', ') || p.tecnologias_listado
-          }`
-      )
+    `Our projects (names only): ${projs
+      .map((p) => `${p.titulo_listado} [${p.categoria}]`)
       .slice(0, 12)
       .join(' | ')}`,
     ``,
@@ -88,8 +82,13 @@ async function callNvidia(env, messages) {
     return { ok: false, status: 500, error: 'Missing NVIDIA_API_KEY secret' };
   }
 
-  const models = (env.NVIDIA_MODELS || '').split(',').map((m) => m.trim()).filter(Boolean);
-  const modelList = models.length ? models : [env.NVIDIA_MODEL || DEFAULT_MODELS[0]];
+  const extraModels = (env.NVIDIA_MODELS || '')
+    .split(',')
+    .map((m) => m.trim())
+    .filter(Boolean);
+  const modelList = [DEFAULT_MODELS[0], ...extraModels, DEFAULT_MODELS[1]].filter(
+    (m, i, a) => a.indexOf(m) === i
+  );
 
   for (const model of modelList) {
     try {
@@ -106,7 +105,7 @@ async function callNvidia(env, messages) {
           max_tokens: 300,
           stream: false,
         }),
-        signal: AbortSignal.timeout(20_000),
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (!res.ok) {

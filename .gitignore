@@ -36,9 +36,17 @@ caballo-de-ajedrez-3d/
 
 # opencode / AI tools
 .opencode/
+.playwright-mcp
 opencode.json*
 AGENTS.md
 CLAUDE.md
 
 # vercel
 .vercel/
+
+# personal knowledge notes (not part of the site)
+knowledge-general/
+CV-HIEYSON.html
+LISTA-REQUERIMIENTOS-TI.md
+PROPUESTA-AUDITORIA-IA.html
+PROPUESTA-TECNICA-LOGISTICA.md
