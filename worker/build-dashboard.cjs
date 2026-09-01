@@ -88,14 +88,15 @@ lines.push('        headers: { "Content-Type": "application/json", Authorization
 lines.push('        body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 600, stream: false }),');
 lines.push('        signal: AbortSignal.timeout(30000),');
 lines.push('      });');
-lines.push('      if (!res.ok) { if (res.status === 429) continue; const b = await res.text().catch(() => ""); return { ok: false, status: res.status, error: b.slice(0, 200) }; }');
+lines.push('      if (!res.ok) { if (res.status === 401 || res.status === 403) { const b = await res.text().catch(() => ""); return { ok: false, status: res.status, error: b.slice(0, 300) }; } if (model !== modelList[modelList.length - 1]) continue; const b = await res.text().catch(() => ""); return { ok: false, status: res.status, error: b.slice(0, 300) }; }');
 lines.push('      const data = await res.json();');
 lines.push('      const reply = data?.choices?.[0]?.message?.content?.trim();');
 lines.push('      if (!reply) return { ok: false, status: 502, error: "Empty response from model" };');
 lines.push('      return { ok: true, reply };');
 lines.push('    } catch (err) {');
 lines.push('      const msg = err instanceof Error ? err.message : "Network error";');
-lines.push('      if (msg.includes("timed out") || msg.includes("Timeout")) continue;');
+lines.push('      const isLast = model === modelList[modelList.length - 1];');
+lines.push('      if (!isLast) continue;');
 lines.push('      return { ok: false, status: 502, error: msg };');
 lines.push('    }');
 lines.push('  }');

@@ -6,7 +6,7 @@ import proyectosEn from '../../src/data/jsons/Proyectos_en.json';
 const NVIDIA_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 const DEFAULT_MODELS = [
-  'meta/llama-3.1-8b-instruct',
+  'nvidia/llama-3.3-nemotron-super-49b-v1',
   'nvidia/nemotron-mini-4b-instruct',
 ];
 const RATE_LIMIT = 20;
@@ -109,9 +109,15 @@ async function callNvidia(env, messages) {
       });
 
       if (!res.ok) {
-        if (res.status === 429) continue;
+        // 401/403 = bad API key -> no point retrying other models
+        if (res.status === 401 || res.status === 403) {
+          const body = await res.text().catch(() => '');
+          return { ok: false, status: res.status, error: body.slice(0, 300) };
+        }
+        // 429/410/404/5xx -> model unavailable/quota -> try next model
+        if (model !== modelList[modelList.length - 1]) continue;
         const body = await res.text().catch(() => '');
-        return { ok: false, status: res.status, error: body.slice(0, 200) };
+        return { ok: false, status: res.status, error: body.slice(0, 300) };
       }
 
       const data = await res.json();
@@ -120,7 +126,9 @@ async function callNvidia(env, messages) {
       return { ok: true, reply };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Network error';
-      if (msg.includes('timed out') || msg.includes('Timeout')) continue;
+      const isLast = model === modelList[modelList.length - 1];
+      if (!isLast && (msg.includes('timed out') || msg.includes('Timeout') || msg.includes('fetch failed'))) continue;
+      if (!isLast) continue;
       return { ok: false, status: 502, error: msg };
     }
   }
