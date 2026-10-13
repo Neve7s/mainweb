@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import { eq, sql } from 'drizzle-orm';
 import { randomBytes, createHash } from 'node:crypto';
 import { db } from '../db/client';
-import { allowedEmails, passwordResets, users } from '../db/schema';
+import { allowedEmails, passwordResets, siteSettings, users } from '../db/schema';
 import { sendResetEmail } from '../lib/resend';
 import { signToken, verifyCredentials, verifyToken } from '../lib/auth';
 
@@ -150,7 +150,12 @@ authRoutes.post('/auth/forgot', async (c) => {
       tokenHash: hashToken(token),
       expiresAt: new Date(Date.now() + 60 * 60_000),
     });
-    await sendResetEmail(email, token);
+    const brandRows = await db
+      .select()
+      .from(siteSettings)
+      .where(eq(siteSettings.key, 'brand'));
+    const brandName = ((brandRows[0]?.value ?? {}) as { name?: string }).name;
+    await sendResetEmail(email, token, brandName);
   }
   return c.json({ ok: true });
 });
