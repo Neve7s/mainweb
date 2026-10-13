@@ -93,6 +93,7 @@ publicRoutes.get('/projects', async (c) => {
       descripcion: lang === 'es' ? p.descripcionListadoEs : p.descripcionListadoEn,
       tecnologias_listado: lang === 'es' ? p.tecnologiasListadoEs : p.tecnologiasListadoEn,
       cover: p.imagenes[0] ?? null,
+      galeria: p.imagenes.slice(0, 5),
       tags: p.tags,
       stack: p.stack,
       destacado: p.destacado,

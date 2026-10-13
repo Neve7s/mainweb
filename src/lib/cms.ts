@@ -44,6 +44,7 @@ export interface ServiceDetail extends ServiceItem {
 export interface ProjectItem {
   id: string; slug: string; categoria: string; titulo: string;
   descripcion: string; tecnologias_listado: string; cover: string | null;
+  galeria: string[];
   tags: string[]; stack: string[]; destacado: boolean; url: string | null;
 }
 export interface ProjectDetail extends ProjectItem {
@@ -117,6 +118,7 @@ function toItem(p: ProjJson, i: number): ProjectItem {
     id: p.id, slug: p.id, categoria: p.categoria, titulo: p.titulo_listado,
     descripcion: p.descripcion_listado, tecnologias_listado: p.tecnologias_listado,
     cover: p.imagenes[0] ? `/${p.imagenes[0]}` : null,
+    galeria: p.imagenes.map((x) => `/${x}`).slice(0, 5),
     tags: p.tags ?? [], stack: p.stack ?? [], destacado: i < 3, url: p.url ?? null,
   };
 }

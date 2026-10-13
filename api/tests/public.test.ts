@@ -47,6 +47,7 @@ describe('public API', () => {
     const dest = await get('/api/projects?lang=es&destacado=true');
     expect(dest.body).toHaveLength(3);
     expect(dest.body[0].cover).toMatch(/^\//);
+    expect(dest.body[0].galeria.length).toBeGreaterThan(0);
   });
 
   it('project detail con galería + 404', async () => {

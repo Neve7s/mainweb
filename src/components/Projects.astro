@@ -9,6 +9,7 @@ interface Props {
 
 const { t, projects, lang = 'es' } = Astro.props;
 const allHref = lang === 'en' ? '/en/proyectos' : '/proyectos';
+const cards = projects.map((p) => ({ ...p, slides: [p.cover, ...p.galeria.slice(0, 3)].filter((x): x is string => !!x) }));
 ---
 
 <section id="work" class="py-32 border-t border-light-border dark:border-dark-border relative transition-colors duration-500">
@@ -22,13 +23,14 @@ const allHref = lang === 'en' ? '/en/proyectos' : '/proyectos';
     </div>
 
     <div id="projects-container" class="space-y-6">
-      {projects.map((project, index) => (
+      {cards.map((project, index) => (
         <div class="project-card cursor-pointer" data-project-id={project.id} data-card-index={String(index)}>
           <div class="group relative overflow-hidden border border-light-border dark:border-dark-border bg-dark-900 hover:shadow-2xl transition-all duration-500 glow-on-hover">
             <div class="relative h-64 sm:h-80 overflow-hidden bg-dark-900">
-              {project.cover && (
-                <img src={project.cover} alt={project.titulo} class="card-img w-full h-full object-cover transition-all duration-700 group-hover:scale-105" loading="lazy" />
-              )}
+              {project.slides.map((img, i) => (
+                <img src={img} alt={i === 0 ? project.titulo : ''} aria-hidden={i === 0 ? undefined : 'true'} loading="lazy" data-slide={i}
+                  class={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 group-hover:scale-105 ${i === 0 ? 'card-img' : 'opacity-0'}`} />
+              ))}
               <div class="card-gradient absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10"></div>
             </div>
             <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
@@ -87,4 +89,32 @@ const allHref = lang === 'en' ? '/en/proyectos' : '/proyectos';
 
     cards.forEach(card => observer.observe(card));
   }
+</script>
+
+<script>
+  // Rotación de fotos por card (crossfade) solo mientras están visibles
+  document.querySelectorAll('#projects-container .project-card').forEach((card) => {
+    const slides = Array.from(card.querySelectorAll('img[data-slide]'));
+    if (slides.length < 2) return;
+    let idx = 0;
+    let timer = null;
+    const show = (n) => {
+      slides.forEach((img, i) => img.classList.toggle('opacity-0', i !== n));
+      idx = n;
+    };
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => show((idx + 1) % slides.length), 3200);
+    };
+    const stop = () => {
+      if (timer) clearInterval(timer);
+      timer = null;
+    };
+    new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) start();
+        else stop();
+      });
+    }, { threshold: 0.25 }).observe(card);
+  });
 </script>

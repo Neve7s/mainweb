@@ -63,7 +63,7 @@
 
 @layer components {
   #navbar.scrolled {
-    @apply bg-white/85 dark:bg-dark-900/85 backdrop-blur-xl;
+    @apply bg-white/95 dark:bg-dark-900/95 backdrop-blur-xl shadow-[0_10px_40px_-12px_rgba(0,0,0,0.35)];
   }
   
   #navbar.scrolled #nav-border {
