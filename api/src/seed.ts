@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { count } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { db, pool } from './db/client';
 import {
   allowedEmails,
@@ -114,7 +114,7 @@ async function seedServices() {
         order: i,
         published: true,
       })
-      .onConflictDoUpdate({ target: services.id, set: { slug: SERVICE_SLUGS[s.id] ?? slugify(s.title) } });
+      .onConflictDoNothing();
     n++;
   }
   console.log(`[seed] services: ${n}`);
@@ -161,7 +161,7 @@ async function seedProjects() {
         order: i,
         published: true,
       })
-      .onConflictDoUpdate({ target: projects.id, set: { slug: p.id } });
+      .onConflictDoNothing();
     n++;
   }
   console.log(`[seed] projects: ${n} (primeros 3 marcados destacado)`);
@@ -233,11 +233,15 @@ async function seedSiteSettings() {
     ['copyright', site['copyright']],
     ['jsonLd', site['jsonLd']],
   ];
+  // Solo inserta claves ausentes: jamás pisa lo que editaste en /admin.
   for (const [key, value] of entries) {
-    await db
-      .insert(siteSettings)
-      .values({ key, value: value as object })
-      .onConflictDoUpdate({ target: siteSettings.key, set: { value: value as object } });
+    const existing = await db
+      .select({ key: siteSettings.key })
+      .from(siteSettings)
+      .where(eq(siteSettings.key, key));
+    if (existing.length === 0) {
+      await db.insert(siteSettings).values({ key, value: value as object });
+    }
   }
   console.log(`[seed] site_settings: ${entries.length}`);
 }

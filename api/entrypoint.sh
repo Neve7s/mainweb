@@ -15,5 +15,7 @@ for i in 1 2 3 4 5; do
     exit 1
   fi
 done
+echo "[entrypoint] running seed (idempotente: rellena vacíos, no pisa tus datos)..."
+node dist/seed.js || echo "[entrypoint] seed incompleto (revisar logs), arranco igual"
 echo "[entrypoint] starting api..."
 exec node dist/index.js
