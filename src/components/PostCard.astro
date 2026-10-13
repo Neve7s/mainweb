@@ -1,0 +1,39 @@
+---
+import type { PostItem } from '../lib/cms';
+
+interface Props {
+  post: PostItem;
+  lang: 'es' | 'en';
+  base: string; // '/blog' | '/noticias' | '/en/blog' | '/en/noticias'
+}
+
+const { post, lang, base } = Astro.props;
+const date = post.published_at
+  ? new Date(post.published_at).toLocaleDateString(lang === 'es' ? 'es-PE' : 'en-US', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    })
+  : '';
+---
+
+<a href={`${base}/${post.slug}`}
+  class="post-card no-underline group border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 hover:bg-light-800 dark:hover:bg-dark-800 hover:shadow-2xl transition-all duration-300 flex flex-col overflow-hidden glow-on-hover"
+  data-search={`${post.title} ${post.excerpt} ${post.tags.join(' ')}`.toLowerCase()}>
+  {post.cover && (
+    <div class="h-48 overflow-hidden bg-dark-900">
+      <img src={post.cover} alt={post.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+    </div>
+  )}
+  <div class="p-6 sm:p-8 flex flex-col flex-grow">
+    <div class="flex items-center gap-3 mb-3 font-mono text-[10px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted">
+      {date && <span>{date}</span>}
+      {post.tags[0] && (
+        <>
+          <span>·</span>
+          <span>{post.tags[0]}</span>
+        </>
+      )}
+    </div>
+    <h3 class="font-display text-lg font-bold text-light-accent dark:text-white mb-2 group-hover:underline leading-snug">{post.title}</h3>
+    <p class="text-sm text-light-muted dark:text-dark-muted font-light leading-relaxed line-clamp-2 flex-grow">{post.excerpt}</p>
+  </div>
+</a>

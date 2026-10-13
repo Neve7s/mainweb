@@ -1,0 +1,41 @@
+---
+import PostCard from './PostCard.astro';
+import type { PostItem } from '../lib/cms';
+
+interface Props {
+  t: Record<string, string>;
+  numKey: string;
+  titleKey: string;
+  descKey: string;
+  viewAllKey: string;
+  emptyKey: string;
+  posts: PostItem[];
+  viewAllHref: string;
+  base: string;
+  lang: 'es' | 'en';
+}
+
+const { t, numKey, titleKey, descKey, viewAllKey, emptyKey, posts, viewAllHref, base, lang } = Astro.props;
+if (posts.length === 0) return null;
+---
+
+<section class="py-24 border-t border-light-border dark:border-dark-border">
+  <div class="max-w-7xl mx-auto px-6 lg:px-12">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12" data-animate data-scroll-reveal="up">
+      <div>
+        <span class="text-xs font-mono tracking-[0.2em] text-light-muted dark:text-dark-muted uppercase mb-4 block">{t[numKey]}</span>
+        <h2 class="text-3xl md:text-4xl font-display font-bold uppercase tracking-tighter text-light-accent dark:text-white">{t[titleKey]}</h2>
+      </div>
+      <a href={viewAllHref} class="no-underline shrink-0 inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.15em] text-light-accent dark:text-white opacity-80 hover:opacity-100 transition-opacity">
+        <span>{t[viewAllKey]}</span>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+      </a>
+    </div>
+    <p class="text-sm text-gray-600 dark:text-gray-400 font-light max-w-xl mb-10">{t[descKey]}</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-light-border dark:bg-dark-border border border-light-border dark:border-dark-border">
+      {posts.map((post) => (
+        <PostCard post={post} lang={lang} base={base} />
+      ))}
+    </div>
+  </div>
+</section>

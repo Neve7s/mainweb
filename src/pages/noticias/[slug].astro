@@ -1,0 +1,119 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPost, getPosts } from '../../lib/cms';
+import { readingMinutes, renderMarkdown } from '../../lib/markdown';
+
+import es from '../../data/jsons/locales/es.json';
+
+export async function getStaticPaths() {
+  const { items } = await getPosts('noticia', 'es', { limit: 100 });
+  return items.map((p) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const post = await getPost(slug ?? '', 'es');
+if (!post || post.type !== 'noticia') return Astro.redirect('/noticias');
+
+const t = es;
+const html = renderMarkdown(post.content_md);
+const minutes = readingMinutes(post.content_md);
+const date = post.published_at
+  ? new Date(post.published_at).toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' })
+  : '';
+const canonical = `https://hieyson.com/noticias/${slug}`;
+const { items: latest } = await getPosts('noticia', 'es', { limit: 4 });
+const related = latest.filter((p) => p.slug !== slug).slice(0, 3);
+const share = encodeURIComponent(`${post.title} ${canonical}`);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'NewsArticle',
+  headline: post.title,
+  description: post.excerpt,
+  image: post.cover ?? undefined,
+  datePublished: post.published_at ?? undefined,
+  author: { '@type': 'Organization', name: post.author, url: 'https://hieyson.com' },
+  mainEntityOfPage: canonical,
+};
+---
+
+<BaseLayout title={`${post.title} — HieysoN`} description={post.excerpt.slice(0, 155)} lang="es" canonicalURL={canonical}>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <Header t={t} />
+
+    <main class="flex-grow pt-36 pb-24">
+      <article class="max-w-3xl mx-auto px-6 lg:px-12">
+        <nav class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-10">
+          <a href="/" class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">Inicio</a>
+          <span>/</span>
+          <a href="/noticias" class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">Noticias</a>
+        </nav>
+
+        <div class="flex flex-wrap items-center gap-3 mb-5 font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted">
+          {date && <span>{date}</span>}
+          <span>·</span>
+          <span>{minutes} {t['post.reading']}</span>
+          {post.tags[0] && (
+            <>
+              <span>·</span>
+              <span>{post.tags[0]}</span>
+            </>
+          )}
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-display font-bold tracking-tight text-light-accent dark:text-white mb-5 leading-tight">{post.title}</h1>
+        <p class="text-base md:text-lg text-light-muted dark:text-white/70 font-light leading-relaxed mb-10">{post.excerpt}</p>
+
+        {post.cover && (
+          <div class="overflow-hidden border border-light-border dark:border-dark-border mb-12">
+            <img src={post.cover} alt={post.title} class="w-full object-cover" loading="eager" />
+          </div>
+        )}
+
+        <div class="post-body" set:html={html} />
+
+        {post.galeria.length > 0 && (
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
+            {post.galeria.map((img, i) => (
+              <div class="overflow-hidden border border-light-border dark:border-dark-border">
+                <img src={img} alt={`${post.title} — imagen ${i + 1}`} class="w-full object-cover" loading="lazy" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {post.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mt-12">
+            {post.tags.map((tag) => (
+              <span class="text-[11px] font-mono px-3 py-1.5 border border-light-border dark:border-dark-border text-light-muted dark:text-dark-muted">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        <div class="flex items-center gap-4 mt-10 pt-8 border-t border-light-border dark:border-dark-border">
+          <span class="font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted">Compartir</span>
+          <a href={`https://twitter.com/intent/tweet?text=${share}`} target="_blank" rel="noopener" class="no-underline text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors font-mono text-xs">X</a>
+          <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}`} target="_blank" rel="noopener" class="no-underline text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors font-mono text-xs">LinkedIn</a>
+          <a href={`https://wa.me/?text=${share}`} target="_blank" rel="noopener" class="no-underline text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors font-mono text-xs">WhatsApp</a>
+        </div>
+      </article>
+
+      {related.length > 0 && (
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 mt-24">
+          <h2 class="text-xs font-mono tracking-[0.2em] uppercase text-light-muted dark:text-dark-muted mb-8">{t['post.related']}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-light-border dark:bg-dark-border border border-light-border dark:border-dark-border">
+            {related.map((p) => (
+              <PostCard post={p} lang="es" base="/noticias" />
+            ))}
+          </div>
+        </div>
+      )}
+    </main>
+
+    <Footer t={t} />
+  </div>
+</BaseLayout>
+

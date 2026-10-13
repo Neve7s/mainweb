@@ -18,11 +18,14 @@ import ProjectModal from '../components/ProjectModal.astro';
 import NeuralCanvas from '../components/NeuralCanvas.astro';
 
 import es from '../data/jsons/locales/es.json';
-import { getProjects, getServices } from '../lib/cms';
+import { getPosts, getProjects, getServices } from '../lib/cms';
+import PostsTeaser from '../components/PostsTeaser.astro';
 
 const t = es;
 const servicesPreview = await getServices('es', 4);
 const projectsPreview = await getProjects('es', { destacado: true, limit: 3 });
+const blogTeaser = await getPosts('blog', 'es', { limit: 3 });
+const noticiasTeaser = await getPosts('noticia', 'es', { limit: 3 });
 ---
 
 <BaseLayout
@@ -46,6 +49,8 @@ const projectsPreview = await getProjects('es', { destacado: true, limit: 3 });
       <Hero t={t} />
       <Expertise t={t} services={servicesPreview} lang="es" />
       <Projects t={t} projects={projectsPreview} lang="es" />
+      <PostsTeaser t={t} numKey="blog.num" titleKey="blog.title" descKey="blog.desc" viewAllKey="blog.view_all" emptyKey="blog.empty" posts={blogTeaser.items} viewAllHref="/blog" base="/blog" lang="es" />
+      <PostsTeaser t={t} numKey="noticias.num" titleKey="noticias.title" descKey="noticias.desc" viewAllKey="noticias.view_all" emptyKey="noticias.empty" posts={noticiasTeaser.items} viewAllHref="/noticias" base="/noticias" lang="es" />
       <TechStack t={t} />
       <Clients t={t} />
       <Testimonials t={t} />

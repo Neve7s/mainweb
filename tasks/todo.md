@@ -26,9 +26,9 @@
 - [x] Task 11: `/proyectos` + `/proyectos/[slug]` galería Cloudinary
 
 ## Fase 5: Blog y Noticias (separados)
-- [ ] Task 12: `/blog` + `/blog/[slug]` + RSS (galería 1..N, XSS neutralizado)
-- [ ] Task 12b: `/noticias` + `/noticias/[slug]` + RSS (no se mezclan)
-- [ ] Task 13: Teasers index 3 blogs + 3 noticias (ocultos si vacíos, LCP +0.3s máx)
+- [x] Task 12: `/blog` + `/blog/[slug]` + RSS (galería 1..N, XSS neutralizado)
+- [x] Task 12b: `/noticias` + `/noticias/[slug]` + RSS (no se mezclan)
+- [x] Task 13: Teasers index 3 blogs + 3 noticias (ocultos si vacíos, LCP +0.3s máx)
 
 ## Fase 6: Header + Hero
 - [ ] Task 14: Header nav real (5 destinos, activo por ruta, a11y, i18n)

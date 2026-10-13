@@ -135,8 +135,8 @@ async function listPosts(c: Context, forcedType?: 'blog' | 'noticia') {
   if (typeRaw !== undefined && typeRaw !== 'blog' && typeRaw !== 'noticia') {
     return c.json({ error: 'type debe ser blog|noticia' }, 400);
   }
-  const limit = parseLimit(c, 12, 50);
-  if (limit === null) return c.json({ error: 'limit debe ser 1..50' }, 400);
+  const limit = parseLimit(c, 12, 100);
+  if (limit === null) return c.json({ error: 'limit debe ser 1..100' }, 400);
   const offsetRaw = c.req.query('offset') ?? '0';
   const offset = Number.parseInt(offsetRaw, 10);
   if (!Number.isFinite(offset) || offset < 0) return c.json({ error: 'offset inválido' }, 400);
