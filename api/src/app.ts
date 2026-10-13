@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { checkDb } from './db/client';
+import { authRoutes } from './routes/auth';
 import { contactRoutes } from './routes/contact';
 import { publicRoutes } from './routes/public';
 
@@ -28,6 +29,7 @@ app.get('/health', async (c) => {
 
 app.route('/api', publicRoutes);
 app.route('/api', contactRoutes);
+app.route('/api', authRoutes);
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404));
 app.onError((err, c) => {

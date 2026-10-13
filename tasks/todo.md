@@ -35,7 +35,7 @@
 - [ ] Task 15: Hero bacán (rotativa sin CLS, doble CTA, reduced-motion, LCP ≤2.5s)
 
 ## Fase 7: Admin + Ship
-- [ ] Task 16a: `/admin` auth + layout
+- [x] Task 16a: `/admin` auth + layout
 - [ ] Task 16b: CRUD servicios/proyectos (galerías Cloudinary)
 - [ ] Task 16c: CRUD blog/noticias (editor md) + settings + inbox contacto + revalidate
 - [ ] Task 17: Dockerfiles + compose (<300MB, no-root, sin secretos)
