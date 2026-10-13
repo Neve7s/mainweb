@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { count } from 'drizzle-orm';
 import { db, pool } from './db/client';
 import {
+  allowedEmails,
   clients,
   projects,
   services,
@@ -241,6 +242,16 @@ async function seedSiteSettings() {
   console.log(`[seed] site_settings: ${entries.length}`);
 }
 
+async function seedAllowedEmails() {
+  const defaults = ['developer@hieyson.com'];
+  const adminEnv = process.env.ADMIN_EMAIL?.toLowerCase().trim();
+  if (adminEnv) defaults.push(adminEnv);
+  for (const email of [...new Set(defaults)]) {
+    await db.insert(allowedEmails).values({ email }).onConflictDoNothing();
+  }
+  console.log('[seed] allowed_emails verificados');
+}
+
 async function seedAdminUser() {
   const [{ n }] = await db.select({ n: count() }).from(users);
   if (n > 0) {
@@ -264,6 +275,7 @@ async function main() {
   await seedTestimonials();
   await seedClients();
   await seedSiteSettings();
+  await seedAllowedEmails();
   await seedAdminUser();
   console.log('[seed] OK');
   await pool.end();

@@ -1,0 +1,58 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { requireAdmin, setTokenCookie } from '../../lib/admin';
+
+const API = import.meta.env.API_URL || 'http://localhost:3001';
+
+const me = await requireAdmin(Astro);
+if (me) return Astro.redirect('/admin');
+
+let error = '';
+if (Astro.request.method === 'POST') {
+  const fd = await Astro.request.formData();
+  const r = await fetch(`${API}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: String(fd.get('email') ?? ''),
+      password: String(fd.get('password') ?? ''),
+    }),
+  });
+  const j = await r.json().catch(() => ({}));
+  const token = r.headers
+    .getSetCookie()
+    .find((h) => h.startsWith('token='))
+    ?.match(/token=([^;]+)/)?.[1];
+  if (r.status === 201 && token) {
+    setTokenCookie(Astro, token);
+    return Astro.redirect('/admin');
+  }
+  error = (j as any).error ?? 'No se pudo registrar';
+}
+---
+
+<BaseLayout title="Crear cuenta — HieysoN" description="Registro administrador" lang="es" canonicalURL="https://hieyson.com/admin/registro">
+  <div class="min-h-screen flex items-center justify-center px-6">
+    <form method="POST" class="w-full max-w-sm border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-8">
+      <p class="font-mono text-[10px] tracking-[0.25em] uppercase text-light-muted dark:text-dark-muted mb-2">HieysoN · Admin</p>
+      <h1 class="font-display text-2xl font-bold text-light-accent dark:text-white mb-2">Crear cuenta</h1>
+      <p class="font-mono text-[11px] text-light-muted dark:text-dark-muted mb-8">Solo correos autorizados. Mínimo 8 caracteres.</p>
+      <div class="space-y-4">
+        <input type="email" name="email" required placeholder="Email" autocomplete="username"
+          class="w-full bg-transparent border border-light-border dark:border-dark-border px-4 py-3 text-sm font-mono text-light-accent dark:text-white placeholder:text-light-muted dark:placeholder:text-dark-muted focus:outline-none focus:border-light-accent dark:focus:border-white transition-colors" />
+        <input type="password" name="password" required minlength="8" placeholder="Contraseña (mínimo 8)" autocomplete="new-password"
+          class="w-full bg-transparent border border-light-border dark:border-dark-border px-4 py-3 text-sm font-mono text-light-accent dark:text-white placeholder:text-light-muted dark:placeholder:text-dark-muted focus:outline-none focus:border-light-accent dark:focus:border-white transition-colors" />
+      </div>
+      {error && <p class="font-mono text-xs text-red-600 dark:text-red-400 mt-4">{error}</p>}
+      <button type="submit"
+        class="w-full mt-6 text-xs font-mono uppercase tracking-[0.15em] bg-light-accent text-light-900 dark:bg-white dark:text-black px-6 py-4 hover:opacity-90 transition-opacity">
+        Crear cuenta
+      </button>
+      <p class="font-mono text-xs text-light-muted dark:text-dark-muted mt-4 text-center">
+        ¿Ya tienes cuenta? <a href="/admin/login" class="underline hover:text-light-accent dark:hover:text-white transition-colors">Entrar</a>
+      </p>
+    </form>
+  </div>
+</BaseLayout>

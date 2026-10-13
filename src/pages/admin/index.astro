@@ -29,6 +29,7 @@ const cards = [
   { href: '/admin/mensajes', label: 'Mensajes nuevos', n: await count('/api/admin/messages?status=new') },
   { href: '/admin/testimonios', label: 'Testimonios', n: await count('/api/admin/testimonials') },
   { href: '/admin/clientes', label: 'Clientes', n: await count('/api/admin/clients') },
+  { href: '/admin/correos', label: 'Correos', n: await count('/api/admin/allowed-emails') },
   { href: '/admin/ajustes', label: 'Ajustes', n: null as number | null },
 ];
 ---

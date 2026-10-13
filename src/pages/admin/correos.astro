@@ -1,0 +1,73 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../components/AdminLayout.astro';
+import { apiFetch, btnCls, btnPrimaryCls, inputCls, requireAdmin } from '../../lib/admin';
+
+const me = await requireAdmin(Astro);
+if (!me) return Astro.redirect('/admin/login');
+
+let error = '';
+if (Astro.request.method === 'POST') {
+  const fd = await Astro.request.formData();
+  const action = String(fd.get('_action') ?? '');
+  if (action === 'add') {
+    const r = await apiFetch(Astro, '/api/admin/allowed-emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: String(fd.get('email') ?? '') }),
+    });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      error = (j as any).error ?? `Error ${r.status}`;
+    }
+  } else if (action === 'delete') {
+    const email = String(fd.get('email') ?? '');
+    if (email) {
+      await apiFetch(Astro, `/api/admin/allowed-emails/${encodeURIComponent(email)}`, {
+        method: 'DELETE',
+      });
+    }
+  }
+  if (!error) return Astro.redirect('/admin/correos');
+}
+
+const r = await apiFetch(Astro, '/api/admin/allowed-emails');
+const emails: Array<{ email: string }> = r.ok ? await r.json() : [];
+---
+
+<AdminLayout title="Correos permitidos" email={me.email}>
+  <p class="font-mono text-xs text-light-muted dark:text-dark-muted mb-8 max-w-2xl">
+    Solo estos correos pueden crear cuenta en <a href="/admin/registro" class="underline">/admin/registro</a>.
+    Un correo ya registrado no puede volver a registrarse aunque siga en la lista.
+  </p>
+
+  {error && (
+    <p class="font-mono text-sm text-red-600 dark:text-red-400 border border-red-500/40 bg-red-500/5 px-4 py-3 mb-6">{error}</p>
+  )}
+
+  <form method="POST" class="flex flex-wrap items-end gap-3 mb-10 max-w-2xl">
+    <input type="hidden" name="_action" value="add" />
+    <div class="flex-1 min-w-60">
+      <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-email">Agregar correo</label>
+      <input id="c-email" name="email" type="email" required placeholder="alguien@hieyson.com" class={inputCls} />
+    </div>
+    <button type="submit" class={btnPrimaryCls}>Agregar</button>
+  </form>
+
+  <div class="border border-light-border dark:border-dark-border max-w-2xl">
+    {emails.map((e) => (
+      <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-light-border/50 dark:border-dark-border/50 last:border-0">
+        <span class="font-mono text-sm text-light-accent dark:text-white">{e.email}</span>
+        <form method="POST" class="inline" onsubmit="return confirm('¿Quitar este correo de la lista? (los usuarios ya creados conservan acceso)')">
+          <input type="hidden" name="_action" value="delete" />
+          <input type="hidden" name="email" value={e.email} />
+          <button type="submit" class={`${btnCls} !px-3 !py-1.5 !text-[10px]`}>Quitar</button>
+        </form>
+      </div>
+    ))}
+    {emails.length === 0 && (
+      <p class="px-4 py-10 text-center font-mono text-xs text-light-muted dark:text-dark-muted">Lista vacía: nadie puede registrarse.</p>
+    )}
+  </div>
+</AdminLayout>

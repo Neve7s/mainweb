@@ -137,6 +137,13 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+// Lista blanca de correos que PUEDEN registrarse. La gestiona el admin.
+// El registro crea el usuario + JWT automáticamente; sin estar aquí, 403.
+export const allowedEmails = pgTable('allowed_emails', {
+  email: text('email').primaryKey(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 // Bandeja del formulario de contacto. Solo la crea el endpoint público.
 export const contactMessages = pgTable(
   'contact_messages',
