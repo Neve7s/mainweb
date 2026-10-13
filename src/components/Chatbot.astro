@@ -6,7 +6,8 @@ interface Props {
 
 const { t } = Astro.props;
 
-const workerUrl = import.meta.env.PUBLIC_CHAT_WORKER_URL || '';
+// Misma origin: el proxy SSR /api/chat reenvía al backend (sin CORS ni env pública).
+const workerUrl = '/api/chat';
 
 const chatI18n = {
   title: t['chat.title'],

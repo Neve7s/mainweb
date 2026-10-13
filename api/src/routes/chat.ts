@@ -7,7 +7,7 @@ export const chatRoutes = new Hono();
 // Lógica portada de worker/src/index.js (Cloudflare) al backend:
 // misma validación, mismo rate-limit, mismo fallback de modelos NVIDIA.
 const NVIDIA_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
-const FALLBACK_MODEL = 'nvidia/nemotron-mini-4b-instruct';
+const FALLBACK_MODEL = 'meta/llama-3.2-90b-vision-instruct';
 
 const Body = z.object({
   messages: z
@@ -22,7 +22,7 @@ const RATE_WINDOW_MS = 60_000;
 const hits = new Map<string, number[]>();
 
 function modelList(): string[] {
-  const def = process.env.NVIDIA_MODEL || 'nvidia/llama-3.3-nemotron-super-49b-v1';
+  const def = process.env.NVIDIA_MODEL || 'openai/gpt-oss-20b';
   const extra = (process.env.NVIDIA_MODELS || '')
     .split(',')
     .map((m) => m.trim())
