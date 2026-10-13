@@ -42,8 +42,8 @@ const mobileLinkCls = (active: boolean) =>
     <div class="flex justify-between items-center h-24 border-b border-light-border/0 dark:border-dark-border/0 transition-colors duration-300" id="nav-border">
       <!-- Brand -->
       <a href={isEN ? '/en/' : '/'} class="no-underline flex-shrink-0 cursor-pointer flex items-center gap-3 h-full" aria-label={brandName}>
-        <img id="brand-logo" src={logoDark} data-logo-dark={logoDark} data-logo-light={logoLight} alt={`${brandName} Logo`} class="h-8 md:h-10 w-auto opacity-90 hover:opacity-100 transition-opacity">
-        <span class="text-sm md:text-base font-display font-bold tracking-[0.15em] uppercase text-light-accent dark:text-white transition-colors">{brandName}</span>
+        <img id="brand-logo" src={logoDark} data-live-logo="true" data-logo-dark={logoDark} data-logo-light={logoLight} alt={`${brandName} Logo`} class="h-8 md:h-10 w-auto opacity-90 hover:opacity-100 transition-opacity">
+        <span data-live="brand.name" class="text-sm md:text-base font-display font-bold tracking-[0.15em] uppercase text-light-accent dark:text-white transition-colors">{brandName}</span>
       </a>
 
       <!-- Desktop Nav -->

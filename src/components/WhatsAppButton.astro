@@ -6,7 +6,7 @@ const waUrl = contact.whatsappUrl || 'https://wa.me/51935533845';
 ---
 
 <!-- WhatsApp Floating Button -->
-<a href={waUrl} target="_blank" class="fixed bottom-8 right-8 z-[100] w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-[0_10px_40px_-10px_rgba(37,211,102,0.5)] hover:scale-110 transition-all duration-300 group overflow-hidden" title="Chat on WhatsApp">
+<a href={waUrl} data-live-href="contact.whatsappUrl" target="_blank" class="fixed bottom-8 right-8 z-[100] w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-[0_10px_40px_-10px_rgba(37,211,102,0.5)] hover:scale-110 transition-all duration-300 group overflow-hidden" title="Chat on WhatsApp">
   <canvas class="spark-btn-canvas absolute inset-0 w-full h-full pointer-events-none z-10" style="border-radius: inherit;"></canvas>
   <img src="https://api.iconify.design/simple-icons:whatsapp.svg?color=white" alt="WhatsApp" class="w-7 h-7 relative z-20">
   <span class="absolute right-full mr-4 px-3 py-1 bg-black/80 text-white text-[10px] font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">WhatsApp</span>

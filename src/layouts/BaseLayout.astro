@@ -78,5 +78,47 @@ const jsonLd = (settings['jsonLd'] ?? {}) as {
 </head>
 <body class="bg-light-900 dark:bg-dark-900 text-light-accent dark:text-white antialiased font-sans font-light overflow-x-hidden transition-colors duration-500 selection:bg-light-accent selection:text-light-900 dark:selection:bg-white dark:selection:text-black">
   <slot />
+
+  <script>
+    // Live-sync: hero/marca/contacto se leen de la API al cargar.
+    // Editas en /admin y se ve al recargar, sin rebuild. Solo pisa si hay valor.
+    // (Redes sociales y estructura siguen por build + Republicar.)
+    (async () => {
+      try {
+        if (window.location.pathname.startsWith('/admin')) return;
+        const base = import.meta.env.PUBLIC_API_URL || '';
+        if (!base) return;
+        const lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+        const res = await fetch(`${base}/api/site-settings`, { headers: { Accept: 'application/json' } });
+        if (!res.ok) return;
+        const s = await res.json();
+        const at = (obj, path) => path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+        const val = (path) => {
+          const v = at(s, path.replace('{lang}', lang));
+          return typeof v === 'string' && v.trim() !== '' ? v : null;
+        };
+        document.querySelectorAll('[data-live]').forEach((el) => {
+          const v = val(el.getAttribute('data-live'));
+          if (v !== null) el.textContent = v;
+        });
+        document.querySelectorAll('[data-live-href]').forEach((el) => {
+          const v = val(el.getAttribute('data-live-href'));
+          if (v === null) return;
+          el.setAttribute('href', (el.getAttribute('data-live-prefix') || '') + v);
+        });
+        const logo = document.querySelector('[data-live-logo]');
+        if (logo) {
+          const dark = val('brand.logo_dark');
+          const light = val('brand.logo_light');
+          if (dark) logo.setAttribute('data-logo-dark', dark);
+          if (light) logo.setAttribute('data-logo-light', light);
+          const isDark = document.documentElement.classList.contains('dark');
+          logo.setAttribute('src', isDark ? (dark || logo.getAttribute('src')) : (light || logo.getAttribute('src')));
+        }
+      } catch {
+        /* sin red: se queda lo compilado */
+      }
+    })();
+  </script>
 </body>
 </html>
