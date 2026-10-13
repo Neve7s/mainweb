@@ -5,6 +5,7 @@
 @theme {
   --font-sans: "Inter", sans-serif;
   --font-display: "Syncopate", sans-serif;
+  --font-hero: "Anton", "Arial Black", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   --color-dark-900: #050505;
@@ -475,5 +476,23 @@
   }
   .post-body img {
     @apply rounded-sm border border-light-border dark:border-dark-border;
+  }
+
+  /* Titular gigante del hero: letras interactivas */
+  .hero-char {
+    display: inline-block;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
+    will-change: transform;
+  }
+  .hero-char.hero-hot {
+    transform: scale(1.28) rotate(-3deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-char {
+      transition: color 0.2s ease;
+    }
+    .hero-char.hero-hot {
+      transform: none;
+    }
   }
 }
