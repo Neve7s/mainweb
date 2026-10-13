@@ -1,4 +1,9 @@
 {
+  "brand": {
+    "name": "HieysoN",
+    "logo_dark": "/img/logo/white/favicon-96x96.png",
+    "logo_light": "/img/logo/black/favicon-96x96.png"
+  },
   "contact": {
     "email": "contacto@hieyson.com",
     "phone": "51935533845",

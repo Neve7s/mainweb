@@ -216,9 +216,18 @@ async function seedClients() {
 
 async function seedSiteSettings() {
   const site = siteData as unknown as Record<string, unknown>;
+  const social = ((site['social'] ?? []) as Array<Record<string, unknown>>).map((s) => ({
+    ...s,
+    enabled: true,
+  }));
   const entries: Array<[string, unknown]> = [
+    ['brand', {
+      name: 'HieysoN',
+      logo_dark: '/img/logo/white/favicon-96x96.png',
+      logo_light: '/img/logo/black/favicon-96x96.png',
+    }],
     ['contact', site['contact']],
-    ['social', site['social']],
+    ['social', social],
     ['socialCompact', site['socialCompact']],
     ['copyright', site['copyright']],
     ['jsonLd', site['jsonLd']],

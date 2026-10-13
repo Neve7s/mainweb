@@ -1,5 +1,5 @@
 ---
-import siteData from '../data/site.json';
+import { getSettings } from '../lib/cms';
 
 interface Props {
   title: string;
@@ -11,7 +11,10 @@ interface Props {
 const { title, description, lang = 'es', canonicalURL = 'https://hieyson.com/' } = Astro.props;
 
 const ogImage = 'https://hieysoN.com/img/logo/og-image.jpg';
-const { jsonLd } = siteData;
+const settings = await getSettings();
+const jsonLd = (settings['jsonLd'] ?? {}) as {
+  name?: string; url?: string; jobTitle?: string; sameAs?: string[]; knowsAbout?: string[];
+};
 ---
 
 <!DOCTYPE html>
@@ -41,11 +44,11 @@ const { jsonLd } = siteData;
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Person",
-    "name": jsonLd.name,
-    "url": jsonLd.url,
-    "jobTitle": jsonLd.jobTitle,
-    "sameAs": jsonLd.sameAs,
-    "knowsAbout": jsonLd.knowsAbout
+    "name": jsonLd.name ?? "HieysoN",
+    "url": jsonLd.url ?? "https://hieyson.com",
+    "jobTitle": jsonLd.jobTitle ?? "Full-Stack Engineer & AI Specialist",
+    "sameAs": jsonLd.sameAs ?? [],
+    "knowsAbout": jsonLd.knowsAbout ?? []
   })} />
 
   <!-- Google Fonts -->

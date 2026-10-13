@@ -9,7 +9,7 @@ export interface StoredFile {
 
 const ALLOWED_EXT = new Set(['jpg', 'jpeg', 'png', 'webp']);
 const MAX_BYTES = 8 * 1024 * 1024;
-export const UPLOAD_TIPOS = ['servicios', 'proyectos', 'blog', 'noticias', 'misc'] as const;
+export const UPLOAD_TIPOS = ['servicios', 'proyectos', 'blog', 'noticias', 'brand', 'misc'] as const;
 
 export function driver(): 'local' | 'cloudinary' {
   return process.env.STORAGE_DRIVER === 'cloudinary' ? 'cloudinary' : 'local';

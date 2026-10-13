@@ -5,7 +5,7 @@
 ## Tablas
 
 ### site_settings(key TEXT PK, value JSONB)
-`contact.email|phone|whatsapp`, `social.*`, `hero.*`, `seo.default_*`. Sin CRUD destructivo.
+`brand` (name, logo_dark, logo_light), `contact` (email, phone, phoneDisplay, whatsappUrl), `social` ([{key, name, url, svg, enabled}]), `hero.*`, `seo.default_*`. Todo editable en `/admin/ajustes`. Sin CRUD destructivo.
 
 ### services(id TEXT PK, slug UNIQUE, icon, order INT, published BOOL, …)
 `category_es/en`, `title_es/en`, `human_title_es/en`, `desc_es/en`, `examples JSONB [{title_es,en,desc_es,en}]`, `cta_heading_es/en`, `cta_desc_es/en`, `cta_button_es/en`. Seed: 4 (`s1..s4`).

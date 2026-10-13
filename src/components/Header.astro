@@ -1,7 +1,16 @@
 ---
-import siteData from '../data/site.json';
+import { getSettings } from '../lib/cms';
 const t = Astro.props.t;
-const { contact, socialCompact: socialNetworks } = siteData;
+// Marca y contacto 100% desde Postgres (fallback a site.json si la API cae).
+const settings = await getSettings();
+const brand = (settings['brand'] ?? {}) as { name?: string; logo_dark?: string; logo_light?: string };
+const brandName = brand.name || 'HieysoN';
+const logoDark = brand.logo_dark || '/img/logo/white/favicon-96x96.png';
+const logoLight = brand.logo_light || '/img/logo/black/favicon-96x96.png';
+const contact = (settings['contact'] ?? {}) as { email?: string; phoneDisplay?: string; whatsappUrl?: string };
+const socialNetworks = ((settings['social'] ?? []) as Array<{ key: string; name: string; url: string; svg?: string; enabled?: boolean }>)
+  .filter((s) => s && s.enabled !== false && s.url && s.url !== '#');
+const sizedSvg = (svg: string, cls: string) => (svg || '').replace(/class="[^"]*"/, `class="${cls}"`);
 
 const pathname = Astro.url.pathname;
 const isEN = pathname.startsWith('/en');
@@ -32,9 +41,9 @@ const mobileLinkCls = (active: boolean) =>
   <div class="max-w-7xl mx-auto px-6 lg:px-12 pointer-events-auto">
     <div class="flex justify-between items-center h-24 border-b border-light-border/0 dark:border-dark-border/0 transition-colors duration-300" id="nav-border">
       <!-- Brand -->
-      <a href={isEN ? '/en/' : '/'} class="no-underline flex-shrink-0 cursor-pointer flex items-center gap-3 h-full" aria-label="HieysoN">
-        <img id="brand-logo" src="/img/logo/white/favicon-96x96.png" alt="HieysoN Logo" class="h-8 md:h-10 w-auto opacity-90 hover:opacity-100 transition-opacity">
-        <span class="text-sm md:text-base font-display font-bold tracking-[0.15em] uppercase text-light-accent dark:text-white transition-colors">HieysoN</span>
+      <a href={isEN ? '/en/' : '/'} class="no-underline flex-shrink-0 cursor-pointer flex items-center gap-3 h-full" aria-label={brandName}>
+        <img id="brand-logo" src={logoDark} data-logo-dark={logoDark} data-logo-light={logoLight} alt={`${brandName} Logo`} class="h-8 md:h-10 w-auto opacity-90 hover:opacity-100 transition-opacity">
+        <span class="text-sm md:text-base font-display font-bold tracking-[0.15em] uppercase text-light-accent dark:text-white transition-colors">{brandName}</span>
       </a>
 
       <!-- Desktop Nav -->
@@ -108,7 +117,7 @@ const mobileLinkCls = (active: boolean) =>
       <span class="text-[9px] font-mono tracking-[0.2em] uppercase text-light-muted dark:text-dark-muted">Social</span>
       <div class="flex gap-5 flex-wrap justify-end">
         {socialNetworks.map(network => (
-          <a href={network.url} class="no-underline text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors" title={network.name} set:html={network.svg} />
+          <a href={network.url} class="no-underline text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors" title={network.name} set:html={sizedSvg(network.svg ?? '', 'w-4 h-4 fill-current')} />
         ))}
       </div>
     </div>
@@ -196,9 +205,11 @@ const mobileLinkCls = (active: boolean) =>
   // Update brand logo based on theme
   function updateLogo() {
     const isDark = document.documentElement.classList.contains('dark');
-    const logoImg = document.getElementById('brand-logo');
+    const logoImg = document.getElementById('brand-logo') as HTMLImageElement | null;
     if (logoImg) {
-      logoImg.src = isDark ? '/img/logo/white/favicon-96x96.png' : '/img/logo/black/favicon-96x96.png';
+      logoImg.src = isDark
+        ? logoImg.dataset.logoDark || '/img/logo/white/favicon-96x96.png'
+        : logoImg.dataset.logoLight || '/img/logo/black/favicon-96x96.png';
     }
   }
   updateLogo();

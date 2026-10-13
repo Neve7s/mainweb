@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import AdminLayout from '../../components/AdminLayout.astro';
-import { apiFetch, btnPrimaryCls, inputCls, requireAdmin } from '../../lib/admin';
+import { apiFetch, btnPrimaryCls, inputCls, requireAdmin, uploadViaApi } from '../../lib/admin';
 
 const me = await requireAdmin(Astro);
 if (!me) return Astro.redirect('/admin/login');
@@ -18,6 +18,18 @@ if (Astro.request.method === 'POST') {
       phoneDisplay: String(fd.get('contact.phoneDisplay') ?? ''),
       whatsappUrl: String(fd.get('contact.whatsappUrl') ?? ''),
     };
+    const brand = {
+      name: String(fd.get('brand.name') ?? 'HieysoN').trim() || 'HieysoN',
+      logo_dark: String(fd.get('brand.logo_dark') ?? ''),
+      logo_light: String(fd.get('brand.logo_light') ?? ''),
+    };
+    for (const [field, key] of [['__file_logo_dark', 'logo_dark'], ['__file_logo_light', 'logo_light']] as const) {
+      const file = fd.get(field);
+      if (file instanceof File && file.size > 0) {
+        const up = await uploadViaApi(Astro, 'brand', file);
+        (brand as Record<string, string>)[key] = up.url;
+      }
+    }
     const hero = {
       badge_es: String(fd.get('hero.badge_es') ?? ''),
       badge_en: String(fd.get('hero.badge_en') ?? ''),
@@ -26,9 +38,22 @@ if (Astro.request.method === 'POST') {
       subtitle_es: String(fd.get('hero.subtitle_es') ?? ''),
       subtitle_en: String(fd.get('hero.subtitle_en') ?? ''),
     };
-    // Solo guarda hero si al menos un campo tiene contenido.
+    // Redes: se reconstruyen desde las actuales (conservan key/name/svg).
+    const curR = await apiFetch(Astro, '/api/admin/settings');
+    const curAll: Record<string, any> = curR.ok ? await curR.json() : {};
+    const curSocial = (curAll['social'] ?? []) as Array<Record<string, any>>;
+    const social = curSocial.map((s, i) => ({
+      ...s,
+      url: String(fd.get(`social.${i}.url`) ?? s.url ?? ''),
+      enabled: fd.get(`social.${i}.enabled`) === 'on',
+    }));
+
     const heroFilled = Object.values(hero).some((v) => v.trim() !== '');
-    const puts: Array<[string, unknown]> = [['contact', contact]];
+    const puts: Array<[string, unknown]> = [
+      ['brand', brand],
+      ['contact', contact],
+      ['social', social],
+    ];
     if (heroFilled) puts.push(['hero', hero]);
     for (const [key, value] of puts) {
       const r = await apiFetch(Astro, `/api/admin/settings/${key}`, {
@@ -46,10 +71,14 @@ if (Astro.request.method === 'POST') {
 
 const r = await apiFetch(Astro, '/api/admin/settings');
 const all: Record<string, any> = r.ok ? await r.json() : {};
+const brand = (all['brand'] ?? {}) as Record<string, string>;
 const contact = (all['contact'] ?? {}) as Record<string, string>;
 const hero = (all['hero'] ?? {}) as Record<string, string>;
+const social = ((all['social'] ?? []) as Array<Record<string, any>>).filter((s) => s && s.key);
+const b = (k: string) => brand[k] ?? '';
 const c = (k: string) => contact[k] ?? '';
 const h = (k: string) => hero[k] ?? '';
+const lbl = 'block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2';
 ---
 
 <AdminLayout title="Ajustes" email={me.email}>
@@ -60,26 +89,66 @@ const h = (k: string) => hero[k] ?? '';
     <p class="font-mono text-sm text-red-600 dark:text-red-400 border border-red-500/40 bg-red-500/5 px-4 py-3 mb-6">{error}</p>
   )}
 
-  <form method="POST" class="space-y-10 max-w-3xl">
+  <form method="POST" enctype="multipart/form-data" class="space-y-10 max-w-3xl">
+    <div>
+      <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-4">Empresa</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label class={lbl} for="b-name">Nombre</label>
+          <input id="b-name" name="brand.name" type="text" value={b('name') || 'HieysoN'} class={inputCls} />
+        </div>
+        <div>
+          <label class={lbl} for="b-ld">Logo en modo oscuro (versión clara)</label>
+          <input id="b-ld" name="brand.logo_dark" type="text" value={b('logo_dark')} placeholder="/img/logo/white/favicon-96x96.png" class={inputCls} />
+          <input name="__file_logo_dark" type="file" accept=".jpg,.jpeg,.png,.webp,.svg" class="font-mono text-xs text-light-muted dark:text-dark-muted mt-2" />
+        </div>
+        <div>
+          <label class={lbl} for="b-ll">Logo en modo claro (versión oscura)</label>
+          <input id="b-ll" name="brand.logo_light" type="text" value={b('logo_light')} placeholder="/img/logo/black/favicon-96x96.png" class={inputCls} />
+          <input name="__file_logo_light" type="file" accept=".jpg,.jpeg,.png,.webp,.svg" class="font-mono text-xs text-light-muted dark:text-dark-muted mt-2" />
+        </div>
+      </div>
+    </div>
+
     <div>
       <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-4">Contacto</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-email">Email</label>
+          <label class={lbl} for="c-email">Email</label>
           <input id="c-email" name="contact.email" type="email" value={c('email')} class={inputCls} />
         </div>
         <div>
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-phone">Teléfono (solo dígitos)</label>
+          <label class={lbl} for="c-phone">Teléfono (solo dígitos)</label>
           <input id="c-phone" name="contact.phone" type="text" value={c('phone')} class={inputCls} />
         </div>
         <div>
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-phoned">Teléfono visible</label>
+          <label class={lbl} for="c-phoned">Teléfono visible</label>
           <input id="c-phoned" name="contact.phoneDisplay" type="text" value={c('phoneDisplay')} class={inputCls} />
         </div>
         <div>
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-wa">WhatsApp URL</label>
+          <label class={lbl} for="c-wa">WhatsApp URL</label>
           <input id="c-wa" name="contact.whatsappUrl" type="text" value={c('whatsappUrl')} class={inputCls} />
         </div>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-4">Redes sociales</h2>
+      <div class="space-y-3">
+        {social.map((s, i) => (
+          <div class="flex flex-wrap items-center gap-3 border border-light-border dark:border-dark-border p-3">
+            <span class="font-mono text-xs text-light-accent dark:text-white w-24 shrink-0">{s.name ?? s.key}</span>
+            <input name={`social.${i}.url`} type="text" value={s.url ?? ''} placeholder="https://…"
+              class="flex-1 min-w-52 bg-transparent border border-light-border dark:border-dark-border px-3 py-2 text-xs font-mono text-light-accent dark:text-white placeholder:text-light-muted dark:placeholder:text-dark-muted focus:outline-none focus:border-light-accent dark:focus:border-white transition-colors" />
+            <label class="inline-flex items-center gap-2 cursor-pointer shrink-0">
+              <input name={`social.${i}.enabled`} type="checkbox" checked={s.enabled !== false} class="w-4 h-4 accent-emerald-600" />
+              <span class="font-mono text-[11px] text-light-muted dark:text-dark-muted">Visible</span>
+            </label>
+          </div>
+        ))}
+        {social.length === 0 && (
+          <p class="font-mono text-xs text-light-muted dark:text-dark-muted">Sin redes configuradas.</p>
+        )}
       </div>
     </div>
 
@@ -87,27 +156,27 @@ const h = (k: string) => hero[k] ?? '';
       <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-2">Hero (vacío = usa los textos por defecto)</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-be">Insignia ES</label>
+          <label class={lbl} for="h-be">Insignia ES</label>
           <input id="h-be" name="hero.badge_es" type="text" value={h('badge_es')} class={inputCls} />
         </div>
         <div>
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-bn">Insignia EN</label>
+          <label class={lbl} for="h-bn">Insignia EN</label>
           <input id="h-bn" name="hero.badge_en" type="text" value={h('badge_en')} class={inputCls} />
         </div>
         <div>
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-te">Título ES</label>
+          <label class={lbl} for="h-te">Título ES</label>
           <input id="h-te" name="hero.title_es" type="text" value={h('title_es')} class={inputCls} />
         </div>
         <div>
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-tn">Título EN</label>
+          <label class={lbl} for="h-tn">Título EN</label>
           <input id="h-tn" name="hero.title_en" type="text" value={h('title_en')} class={inputCls} />
         </div>
         <div class="sm:col-span-2">
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-se">Subtítulo ES</label>
+          <label class={lbl} for="h-se">Subtítulo ES</label>
           <textarea id="h-se" name="hero.subtitle_es" rows="2" class={inputCls}>{h('subtitle_es')}</textarea>
         </div>
         <div class="sm:col-span-2">
-          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-sn">Subtítulo EN</label>
+          <label class={lbl} for="h-sn">Subtítulo EN</label>
           <textarea id="h-sn" name="hero.subtitle_en" rows="2" class={inputCls}>{h('subtitle_en')}</textarea>
         </div>
       </div>

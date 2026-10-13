@@ -1,7 +1,16 @@
 ---
-import siteData from '../data/site.json';
+import { getSettings } from '../lib/cms';
 const t = Astro.props.t;
-const { contact, social: socialLinks, copyright } = siteData;
+const settings = await getSettings();
+const brand = (settings['brand'] ?? {}) as { name?: string };
+const brandName = brand.name || 'HieysoN';
+const contact = (settings['contact'] ?? {}) as { email?: string; phoneDisplay?: string; whatsappUrl?: string };
+const socialLinks = ((settings['social'] ?? []) as Array<{ key: string; name: string; url: string; svg?: string; enabled?: boolean }>)
+  .filter((s) => s && s.enabled !== false && s.url && s.url !== '#');
+const sizedSvg = (svg: string, cls: string) => (svg || '').replace(/class="[^"]*"/, `class="${cls}"`);
+const copyright = (settings['copyright'] ?? {}) as { year?: number; name?: string };
+const copyYear = copyright.year ?? 2026;
+const copyName = copyright.name || brandName;
 ---
 
 <footer id="contact" class="border-t border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 pt-32 pb-12 relative z-10 transition-colors duration-500">
@@ -15,7 +24,7 @@ const { contact, social: socialLinks, copyright } = siteData;
         </h2>
         <a href={`mailto:${contact.email}`}
           class="no-underline inline-flex items-center gap-4 text-xl font-mono text-light-accent dark:text-white hover:text-gray-500 dark:hover:text-gray-400 transition-colors group">
-          <span>contacto@hieyson.com</span>
+          <span>{contact.email}</span>
           <svg class="w-5 h-5 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
         </a>
       </div>
@@ -66,7 +75,7 @@ const { contact, social: socialLinks, copyright } = siteData;
     <!-- Footer bottom -->
     <div class="border-t border-light-border dark:border-dark-border pt-8 flex flex-col md:flex-row justify-between items-center gap-6 transition-colors duration-500">
       <div class="flex flex-col gap-2">
-        <p class="text-light-muted dark:text-dark-muted font-mono text-[10px] uppercase tracking-[0.2em] transition-colors">&copy; {copyright.year} {copyright.name}. {t['footer.rights']}</p>
+        <p class="text-light-muted dark:text-dark-muted font-mono text-[10px] uppercase tracking-[0.2em] transition-colors">&copy; {copyYear} {copyName}. {t['footer.rights']}</p>
         <div class="flex gap-4 text-light-muted dark:text-dark-muted font-mono text-[10px] uppercase tracking-[0.1em]">
           <a href="/privacidad" class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">Privacidad</a>
           <span>|</span>
@@ -78,7 +87,7 @@ const { contact, social: socialLinks, copyright } = siteData;
       <div class="flex gap-8 items-center">
         <div class="flex gap-6 flex-wrap">
           {socialLinks.map(link => (
-            <a href={link.url} class="no-underline text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors" title={link.name} set:html={link.svg} />
+            <a href={link.url} class="no-underline text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors" title={link.name} set:html={sizedSvg(link.svg ?? '', 'w-5 h-5 fill-current')} />
           ))}
         </div>
         <div class="h-4 w-[1px] bg-light-border dark:bg-dark-border"></div>
