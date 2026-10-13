@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import Header from '../../../components/Header.astro';
 import Footer from '../../../components/Footer.astro';
@@ -8,10 +10,7 @@ import { readingMinutes, renderMarkdown } from '../../../lib/markdown';
 
 import en from '../../../data/jsons/locales/en.json';
 
-export async function getStaticPaths() {
-  const { items } = await getPosts('blog', 'en', { limit: 100 });
-  return items.map((p) => ({ params: { slug: p.slug } }));
-}
+// SSR: resuelve por params en cada request (contenido siempre vivo).
 
 const { slug } = Astro.params;
 const post = await getPost(slug ?? '', 'en');

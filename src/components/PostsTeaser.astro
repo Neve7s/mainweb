@@ -19,7 +19,7 @@ const { t, numKey, titleKey, descKey, viewAllKey, emptyKey, posts, viewAllHref, 
 if (posts.length === 0) return null;
 ---
 
-<section class="py-24 border-t border-light-border dark:border-dark-border">
+<section class="py-24 border-t border-light-border dark:border-dark-border" data-teaser data-base={base} data-lang={lang}>
   <div class="max-w-7xl mx-auto px-6 lg:px-12">
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12" data-animate data-scroll-reveal="up">
       <div>
@@ -32,10 +32,46 @@ if (posts.length === 0) return null;
       </a>
     </div>
     <p class="text-sm text-gray-600 dark:text-gray-400 font-light max-w-xl mb-10">{t[descKey]}</p>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-light-border dark:bg-dark-border border border-light-border dark:border-dark-border">
+    <div data-teaser-grid class="grid grid-cols-1 md:grid-cols-3 gap-px bg-light-border dark:bg-dark-border border border-light-border dark:border-dark-border">
       {posts.map((post) => (
         <PostCard post={post} lang={lang} base={base} />
       ))}
     </div>
   </div>
 </section>
+
+<script>
+  // Teasers vivos: refresca los 3 últimos al cargar (nuevo contenido sin rebuild).
+  // Si ya no hay publicados, oculta la sección (igual que el server).
+  document.querySelectorAll('[data-teaser]').forEach(async (sec) => {
+    const API_URL = import.meta.env.PUBLIC_API_URL || '';
+    const base = sec.getAttribute('data-base') || '';
+    const lang = sec.getAttribute('data-lang') === 'en' ? 'en' : 'es';
+    const grid = sec.querySelector('[data-teaser-grid]');
+    if (!API_URL || !base || !grid) return;
+    const type = base.includes('blog') ? 'blog' : 'noticia';
+    const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    try {
+      const res = await fetch(`${API_URL}/api/${type}?lang=${lang}&limit=3`, { headers: { Accept: 'application/json' } });
+      if (!res.ok) return;
+      const { items } = await res.json();
+      if (!items || items.length === 0) {
+        sec.style.display = 'none';
+        return;
+      }
+      grid.innerHTML = items.map((p) => {
+        const date = p.published_at
+          ? new Date(p.published_at).toLocaleDateString(lang === 'es' ? 'es-PE' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+          : '';
+        const tag = (p.tags && p.tags[0]) || '';
+        return `<a href="${base}/${p.slug}" class="post-card no-underline group border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 hover:bg-light-800 dark:hover:bg-dark-800 hover:shadow-2xl transition-all duration-300 flex flex-col overflow-hidden glow-on-hover">`
+          + `${p.cover ? `<div class="h-48 overflow-hidden bg-dark-900"><img src="${p.cover}" alt="" loading="lazy" class="w-full h-full object-cover" /></div>` : ''}`
+          + `<div class="p-6 sm:p-8 flex flex-col flex-grow"><div class="flex items-center gap-3 mb-3 font-mono text-[10px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted">${date}${tag ? `<span>·</span><span>${esc(tag)}</span>` : ''}</div>`
+          + `<h3 class="font-display text-lg font-bold text-light-accent dark:text-white mb-2 group-hover:underline leading-snug">${esc(p.title)}</h3>`
+          + `<p class="text-sm text-light-muted dark:text-dark-muted font-light leading-relaxed line-clamp-2 flex-grow">${esc(p.excerpt)}</p></div></a>`;
+      }).join('');
+    } catch {
+      /* sin red: queda lo compilado */
+    }
+  });
+</script>
