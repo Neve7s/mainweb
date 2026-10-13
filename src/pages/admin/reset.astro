@@ -1,0 +1,59 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { setTokenCookie } from '../../lib/admin';
+
+const API = import.meta.env.API_URL || 'http://localhost:3001';
+const token = Astro.url.searchParams.get('token') ?? '';
+
+let error = token ? '' : 'Enlace inválido. Pide uno nuevo en /admin/olvide.';
+if (token && Astro.request.method === 'POST') {
+  const fd = await Astro.request.formData();
+  const password = String(fd.get('password') ?? '');
+  const confirm = String(fd.get('confirm') ?? '');
+  if (password !== confirm) {
+    error = 'Las contraseñas no coinciden';
+  } else {
+    const r = await fetch(`${API}/api/auth/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    });
+    const j = await r.json().catch(() => ({}));
+    const session = r.headers
+      .getSetCookie()
+      .find((h) => h.startsWith('token='))
+      ?.match(/token=([^;]+)/)?.[1];
+    if (r.ok && session) {
+      setTokenCookie(Astro, session);
+      return Astro.redirect('/admin');
+    }
+    error = (j as any).error ?? 'No se pudo cambiar la clave';
+  }
+}
+---
+
+<BaseLayout title="Nueva contraseña — HieysoN" description="Define una contraseña nueva" lang="es" canonicalURL="https://hieyson.com/admin/reset">
+  <div class="min-h-screen flex items-center justify-center px-6">
+    <div class="w-full max-w-sm border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-8">
+      <p class="font-mono text-[10px] tracking-[0.25em] uppercase text-light-muted dark:text-dark-muted mb-2">HieysoN · Admin</p>
+      <h1 class="font-display text-2xl font-bold text-light-accent dark:text-white mb-2">Nueva contraseña</h1>
+      {token ? (
+        <form method="POST" class="mt-6 space-y-4">
+          <input type="password" name="password" required minlength="8" placeholder="Nueva contraseña (mínimo 8)" autocomplete="new-password"
+            class="w-full bg-transparent border border-light-border dark:border-dark-border px-4 py-3 text-sm font-mono text-light-accent dark:text-white placeholder:text-light-muted dark:placeholder:text-dark-muted focus:outline-none focus:border-light-accent dark:focus:border-white transition-colors" />
+          <input type="password" name="confirm" required minlength="8" placeholder="Repite la contraseña" autocomplete="new-password"
+            class="w-full bg-transparent border border-light-border dark:border-dark-border px-4 py-3 text-sm font-mono text-light-accent dark:text-white placeholder:text-light-muted dark:placeholder:text-dark-muted focus:outline-none focus:border-light-accent dark:focus:border-white transition-colors" />
+          {error && <p class="font-mono text-xs text-red-600 dark:text-red-400">{error}</p>}
+          <button type="submit"
+            class="w-full text-xs font-mono uppercase tracking-[0.15em] bg-light-accent text-light-900 dark:bg-white dark:text-black px-6 py-4 hover:opacity-90 transition-opacity">
+            Guardar y entrar
+          </button>
+        </form>
+      ) : (
+        <p class="font-mono text-xs text-red-600 dark:text-red-400 mt-6">{error}</p>
+      )}
+    </div>
+  </div>
+</BaseLayout>

@@ -137,8 +137,16 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Lista blanca de correos que PUEDEN registrarse. La gestiona el admin.
-// El registro crea el usuario + JWT automáticamente; sin estar aquí, 403.
+// Tokens de recuperación de contraseña (un solo uso, 1h). Se guarda el hash, nunca el token.
+export const passwordResets = pgTable('password_resets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull(),
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Lista blanca de correos que pueden registrarse. La gestiona el admin.
 export const allowedEmails = pgTable('allowed_emails', {
   email: text('email').primaryKey(),
   createdAt: timestamp('created_at').defaultNow(),

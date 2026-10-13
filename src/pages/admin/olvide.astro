@@ -1,0 +1,49 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { requireAdmin } from '../../lib/admin';
+
+const API = import.meta.env.API_URL || 'http://localhost:3001';
+
+const me = await requireAdmin(Astro);
+if (me) return Astro.redirect('/admin');
+
+let sent = false;
+if (Astro.request.method === 'POST') {
+  const fd = await Astro.request.formData();
+  await fetch(`${API}/api/auth/forgot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: String(fd.get('email') ?? '') }),
+  }).catch(() => null);
+  // Siempre el mismo mensaje (no revela si el correo existe).
+  sent = true;
+}
+---
+
+<BaseLayout title="Recuperar acceso — HieysoN" description="Recupera tu acceso de administrador" lang="es" canonicalURL="https://hieyson.com/admin/olvide">
+  <div class="min-h-screen flex items-center justify-center px-6">
+    <div class="w-full max-w-sm border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-8">
+      <p class="font-mono text-[10px] tracking-[0.25em] uppercase text-light-muted dark:text-dark-muted mb-2">HieysoN · Admin</p>
+      <h1 class="font-display text-2xl font-bold text-light-accent dark:text-white mb-2">Recuperar acceso</h1>
+      {sent ? (
+        <p class="font-mono text-xs text-light-muted dark:text-dark-muted mt-6 leading-relaxed">
+          Si ese correo tiene cuenta, le enviamos un enlace para definir una clave nueva (vence en 1 hora).
+        </p>
+      ) : (
+        <form method="POST" class="mt-6">
+          <input type="email" name="email" required placeholder="Email de tu cuenta" autocomplete="username"
+            class="w-full bg-transparent border border-light-border dark:border-dark-border px-4 py-3 text-sm font-mono text-light-accent dark:text-white placeholder:text-light-muted dark:placeholder:text-dark-muted focus:outline-none focus:border-light-accent dark:focus:border-white transition-colors" />
+          <button type="submit"
+            class="w-full mt-4 text-xs font-mono uppercase tracking-[0.15em] bg-light-accent text-light-900 dark:bg-white dark:text-black px-6 py-4 hover:opacity-90 transition-opacity">
+            Enviar enlace
+          </button>
+        </form>
+      )}
+      <p class="font-mono text-xs text-light-muted dark:text-dark-muted mt-6 text-center">
+        <a href="/admin/login" class="underline hover:text-light-accent dark:hover:text-white transition-colors">Volver a entrar</a>
+      </p>
+    </div>
+  </div>
+</BaseLayout>

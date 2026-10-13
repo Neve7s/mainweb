@@ -2,9 +2,11 @@ import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
+import { randomBytes, createHash } from 'node:crypto';
 import { db } from '../db/client';
-import { allowedEmails, users } from '../db/schema';
+import { allowedEmails, passwordResets, users } from '../db/schema';
+import { sendResetEmail } from '../lib/resend';
 import { signToken, verifyCredentials, verifyToken } from '../lib/auth';
 
 export const authRoutes = new Hono();
@@ -99,6 +101,91 @@ authRoutes.post('/auth/register', async (c) => {
     }
     throw e;
   }
+});
+
+const Forgot = z.object({ email: z.string().trim().email().max(254) });
+const Reset = z.object({
+  token: z.string().min(10).max(200),
+  password: z.string().min(8).max(200),
+});
+
+// Anti-abuso del "olvidé mi clave": 5 por IP cada 10 min.
+const FORGOT_LIMIT = 5;
+const FORGOT_WINDOW_MS = 10 * 60_000;
+const forgotHits = new Map<string, number[]>();
+
+function hashToken(t: string): string {
+  return createHash('sha256').update(t).digest('hex');
+}
+
+// Siempre responde ok:true (no revela si el correo existe).
+authRoutes.post('/auth/forgot', async (c) => {
+  const ip = clientIp(c);
+  const now = Date.now();
+  const arr = (forgotHits.get(ip) || []).filter((t) => now - t < FORGOT_WINDOW_MS);
+  if (arr.length >= FORGOT_LIMIT) {
+    return c.json({ error: 'Demasiados intentos, espera unos minutos' }, 429);
+  }
+  arr.push(now);
+  forgotHits.set(ip, arr);
+
+  let json: unknown;
+  try {
+    json = await c.req.json();
+  } catch {
+    return c.json({ error: 'JSON inválido' }, 400);
+  }
+  const p = Forgot.safeParse(json);
+  if (!p.success) return c.json({ error: 'Email inválido' }, 400);
+
+  // Limpieza oportunista de tokens vencidos.
+  await db.delete(passwordResets).where(sql`${passwordResets.expiresAt} < NOW()`);
+
+  const email = p.data.email.toLowerCase();
+  const existing = await db.select().from(users).where(eq(users.email, email));
+  if (existing[0]) {
+    const token = randomBytes(32).toString('hex');
+    await db.insert(passwordResets).values({
+      email,
+      tokenHash: hashToken(token),
+      expiresAt: new Date(Date.now() + 60 * 60_000),
+    });
+    await sendResetEmail(email, token);
+  }
+  return c.json({ ok: true });
+});
+
+// Canjea el token (un solo uso): cambia la clave e inicia sesión.
+authRoutes.post('/auth/reset', async (c) => {
+  let json: unknown;
+  try {
+    json = await c.req.json();
+  } catch {
+    return c.json({ error: 'JSON inválido' }, 400);
+  }
+  const p = Reset.safeParse(json);
+  if (!p.success) {
+    return c.json({ error: 'Enlace inválido o contraseña muy corta (mínimo 8)' }, 400);
+  }
+  const rows = await db
+    .select()
+    .from(passwordResets)
+    .where(eq(passwordResets.tokenHash, hashToken(p.data.token)));
+  const row = rows[0];
+  if (!row || row.expiresAt < new Date()) {
+    if (row) await db.delete(passwordResets).where(eq(passwordResets.id, row.id));
+    return c.json({ error: 'Enlace inválido o vencido, pide otro' }, 400);
+  }
+  const target = await db.select().from(users).where(eq(users.email, row.email));
+  if (!target[0]) {
+    await db.delete(passwordResets).where(eq(passwordResets.id, row.id));
+    return c.json({ error: 'Enlace inválido o vencido, pide otro' }, 400);
+  }
+  const passwordHash = await bcrypt.hash(p.data.password, 12);
+  await db.update(users).set({ passwordHash }).where(eq(users.id, target[0].id));
+  await db.delete(passwordResets).where(eq(passwordResets.id, row.id));
+  setCookie(c, 'token', await signToken(target[0]), cookieOpts());
+  return c.json({ ok: true, email: target[0].email });
 });
 
 authRoutes.post('/auth/logout', (c) => {
