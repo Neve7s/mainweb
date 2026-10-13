@@ -71,5 +71,11 @@
   "services.next": "Siguiente",
   "services.view_all": "Ver todos los servicios",
   "services.filter_all": "Todos",
+  "projects.view_all": "Ver todos los proyectos",
+  "projects.filter_all": "Todos",
+  "projects.visit": "Visitar sitio",
+  "projects.gallery": "Galería",
+  "projects.results": "Logros",
+  "projects.related": "Relacionados",
   "footer.rights": "TODOS LOS DERECHOS RESERVADOS."
 }

@@ -19,10 +19,10 @@
 
 ## Fase 3: Servicios
 - [x] Task 8: Teaser desde CMS + CTA + `/servicios` es/en (modal temporal, sin rediseño visual aún)
-- [ ] Task 9: `/servicios/[slug]` ficha + filtros + JSON-LD (SEO ≥95)
+- [x] Task 9: `/servicios/[slug]` ficha + filtros + JSON-LD (SEO ≥95)
 
 ## Fase 4: Proyectos
-- [ ] Task 10: Teaser 3 destacados en index (scrim light/dark)
+- [x] Task 10: Teaser 3 destacados en index (scrim light/dark)
 - [ ] Task 11: `/proyectos` + `/proyectos/[slug]` galería Cloudinary
 
 ## Fase 5: Blog y Noticias (separados)

@@ -1,5 +1,14 @@
 ---
-const t = Astro.props.t;
+import type { ProjectItem } from '../lib/cms';
+
+interface Props {
+  t: Record<string, string>;
+  projects: ProjectItem[];
+  lang?: 'es' | 'en';
+}
+
+const { t, projects, lang = 'es' } = Astro.props;
+const allHref = lang === 'en' ? '/en/proyectos' : '/proyectos';
 ---
 
 <section id="work" class="py-32 border-t border-light-border dark:border-dark-border relative transition-colors duration-500">
@@ -13,80 +22,69 @@ const t = Astro.props.t;
     </div>
 
     <div id="projects-container" class="space-y-6">
-      <!-- Projects loaded client-side -->
+      {projects.map((project, index) => (
+        <div class="project-card cursor-pointer" data-project-id={project.id} data-card-index={String(index)}>
+          <div class="group relative overflow-hidden border border-light-border dark:border-dark-border bg-dark-900 hover:shadow-2xl transition-all duration-500 glow-on-hover">
+            <div class="relative h-64 sm:h-80 overflow-hidden bg-dark-900">
+              {project.cover && (
+                <img src={project.cover} alt={project.titulo} class="card-img w-full h-full object-cover transition-all duration-700 group-hover:scale-105" loading="lazy" />
+              )}
+              <div class="card-gradient absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10"></div>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+              <span class="card-cat text-[10px] font-mono tracking-[0.2em] uppercase text-white/70 mb-2 block">{project.categoria}</span>
+              <h3 class="card-title text-xl sm:text-2xl font-display font-bold uppercase tracking-tight text-white mb-2">{project.titulo}</h3>
+              <p class="card-desc text-sm text-white/80 font-light line-clamp-2">{project.descripcion}</p>
+              <div class="card-tags mt-4 flex flex-wrap gap-2">
+                {(project.stack.length > 0 ? project.stack : [project.tecnologias_listado]).map((tech) => (
+                  <span class="text-[10px] font-mono px-2 py-1 border border-white/25 text-white/80 bg-black/40 backdrop-blur-sm">{tech}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-16 flex justify-center" data-animate data-scroll-reveal="up">
+      <a href={allHref} class="no-underline group inline-flex items-center gap-3 text-xs font-mono uppercase tracking-[0.2em] text-light-accent dark:text-white border border-light-border dark:border-dark-border px-8 py-4 hover:bg-light-accent hover:text-light-900 dark:hover:bg-white dark:hover:text-black transition-all">
+        <span>{t['projects.view_all']}</span>
+        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+      </a>
     </div>
   </div>
 </section>
 
 <script>
-  import projectsData from '../data/jsons/Proyectos.json';
-
+  // Animación cinematográfica de entrada (las cards ya vienen renderizadas del servidor)
   const container = document.getElementById('projects-container');
   if (container) {
-    const projects = projectsData.proyectos || [];
-    
-    projects.forEach((project: any, index: number) => {
-      const firstImg = project.imagenes && project.imagenes.length > 0 ? '/' + project.imagenes[0] : '';
-      const card = document.createElement('div');
-      card.className = 'project-card cursor-pointer';
-      card.setAttribute('data-project-id', project.id);
-      card.setAttribute('data-card-index', String(index));
-      card.innerHTML = `
-        <div class="group relative overflow-hidden border border-light-border dark:border-dark-border bg-white dark:bg-dark-900 hover:shadow-2xl transition-all duration-500 glow-on-hover">
-          <div class="relative h-64 sm:h-80 overflow-hidden bg-white dark:bg-dark-900">
-            ${firstImg ? `<img src="${firstImg}" alt="${project.titulo_listado}" class="card-img w-full h-full object-cover transition-all duration-700 group-hover:scale-105" loading="lazy" />` : ''}
-            <div class="card-gradient absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent dark:from-black dark:via-black/50 dark:to-transparent"></div>
-            <div class="card-overlay absolute inset-0 bg-white/50 dark:bg-transparent transition-opacity duration-500 group-hover:opacity-0 pointer-events-none"></div>
-          </div>
-          <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-            <span class="card-cat text-[10px] font-mono tracking-[0.2em] uppercase text-black/70 dark:text-white/80 mb-2 block" style="text-shadow: 0 1px 4px rgba(255,255,255,0.6)">${project.categoria || ''}</span>
-            <h3 class="card-title text-xl sm:text-2xl font-display font-bold uppercase tracking-tight text-black dark:text-white mb-2" style="text-shadow: 0 1px 6px rgba(255,255,255,0.5)">${project.titulo_listado || ''}</h3>
-            <p class="card-desc text-sm text-black/80 dark:text-white/90 font-light line-clamp-2" style="text-shadow: 0 1px 4px rgba(255,255,255,0.4)">${project.descripcion_listado || ''}</p>
-            <div class="card-tags mt-4 flex flex-wrap gap-2">
-              ${(project.tecnologias_listado || '').split(',').map((tech: string) => 
-                `<span class="text-[10px] font-mono px-2 py-1 border border-black/20 dark:border-white/30 text-black/70 dark:text-white/80 bg-white/40 dark:bg-black/30 backdrop-blur-sm">${tech.trim()}</span>`
-              ).join('')}
-            </div>
-          </div>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-    // Cinematic scroll-triggered construction
     const cards = container.querySelectorAll('.project-card');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const card = entry.target as HTMLElement;
           const idx = parseInt(card.getAttribute('data-card-index') || '0');
-          const delay = idx * 120;
-
           setTimeout(() => {
             card.classList.add('is-visible');
-
-            const img = card.querySelector('.card-img') as HTMLElement;
-            const gradient = card.querySelector('.card-gradient') as HTMLElement;
-            const overlay = card.querySelector('.card-overlay') as HTMLElement;
-            const cat = card.querySelector('.card-cat') as HTMLElement;
-            const title = card.querySelector('.card-title') as HTMLElement;
-            const desc = card.querySelector('.card-desc') as HTMLElement;
-            const tags = card.querySelector('.card-tags') as HTMLElement;
-
+            const img = card.querySelector('.card-img') as HTMLElement | null;
+            const gradient = card.querySelector('.card-gradient') as HTMLElement | null;
+            const cat = card.querySelector('.card-cat') as HTMLElement | null;
+            const title = card.querySelector('.card-title') as HTMLElement | null;
+            const desc = card.querySelector('.card-desc') as HTMLElement | null;
+            const tags = card.querySelector('.card-tags') as HTMLElement | null;
             if (img) { img.style.transitionDelay = '0ms'; img.classList.add('build-in'); }
             if (gradient) { gradient.style.transitionDelay = '200ms'; gradient.classList.add('build-in'); }
-            if (overlay) { overlay.style.transitionDelay = '300ms'; overlay.classList.add('build-in'); }
             if (cat) { cat.style.transitionDelay = '250ms'; cat.classList.add('build-slide-left'); }
             if (title) { title.style.transitionDelay = '350ms'; title.classList.add('build-slide-left'); }
             if (desc) { desc.style.transitionDelay = '450ms'; desc.classList.add('build-slide-left'); }
             if (tags) { tags.style.transitionDelay = '550ms'; tags.classList.add('build-slide-right'); }
-          }, delay);
-
+          }, idx * 120);
           observer.unobserve(entry.target);
         }
       });
     }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
-    
+
     cards.forEach(card => observer.observe(card));
   }
 </script>

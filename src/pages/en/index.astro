@@ -18,10 +18,11 @@ import ProjectModal from '../../components/ProjectModal.astro';
 import NeuralCanvas from '../../components/NeuralCanvas.astro';
 
 import en from '../../data/jsons/locales/en.json';
-import { getServices } from '../../lib/cms';
+import { getProjects, getServices } from '../../lib/cms';
 
 const t = en;
 const servicesPreview = await getServices('en', 4);
+const projectsPreview = await getProjects('en', { destacado: true, limit: 3 });
 ---
 
 <BaseLayout
@@ -44,7 +45,7 @@ const servicesPreview = await getServices('en', 4);
     <main class="flex-grow">
       <Hero t={t} />
       <Expertise t={t} services={servicesPreview} lang="en" />
-      <Projects t={t} />
+      <Projects t={t} projects={projectsPreview} lang="en" />
       <TechStack t={t} />
       <Clients t={t} />
       <Testimonials t={t} />
