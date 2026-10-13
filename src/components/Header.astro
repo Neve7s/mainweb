@@ -2,30 +2,55 @@
 import siteData from '../data/site.json';
 const t = Astro.props.t;
 const { contact, socialCompact: socialNetworks } = siteData;
+
+const pathname = Astro.url.pathname;
+const isEN = pathname.startsWith('/en');
+const path = pathname.replace(/^\/en/, '') || '/';
+// Cambio de idioma conservando la página (incluye slugs).
+const otherLangPath = isEN ? path : `/en${path === '/' ? '/' : path}`;
+
+const links = [
+  { href: isEN ? '/en/' : '/', active: path === '/', label: t['nav.home'] },
+  { href: isEN ? '/en/servicios' : '/servicios', active: path.startsWith('/servicios'), label: t['nav.expertise'] },
+  { href: isEN ? '/en/proyectos' : '/proyectos', active: path.startsWith('/proyectos'), label: t['nav.work'] },
+  { href: isEN ? '/en/blog' : '/blog', active: path.startsWith('/blog'), label: t['nav.blog'] },
+  { href: isEN ? '/en/noticias' : '/noticias', active: path.startsWith('/noticias'), label: t['nav.news'] },
+];
+
+const linkCls = (active: boolean) =>
+  `nav-link no-underline text-xs tracking-[0.1em] uppercase transition-colors py-2 border-b ${active
+    ? 'text-light-accent dark:text-white border-light-accent dark:border-white'
+    : 'text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white border-transparent'}`;
+
+const mobileLinkCls = (active: boolean) =>
+  `no-underline text-xs tracking-[0.2em] uppercase pb-4 border-b transition-colors flex items-center justify-between group ${active
+    ? 'text-light-accent dark:text-white border-light-accent/60 dark:border-white/60'
+    : 'text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white border-light-border/50 dark:border-dark-border/50'}`;
 ---
 
 <header class="fixed w-full top-0 z-50 transition-all duration-300 pointer-events-none" id="navbar">
   <div class="max-w-7xl mx-auto px-6 lg:px-12 pointer-events-auto">
     <div class="flex justify-between items-center h-24 border-b border-light-border/0 dark:border-dark-border/0 transition-colors duration-300" id="nav-border">
       <!-- Brand -->
-      <div class="flex-shrink-0 cursor-pointer flex items-center gap-3 h-full" onclick="window.scrollTo(0,0)">
+      <a href={isEN ? '/en/' : '/'} class="no-underline flex-shrink-0 cursor-pointer flex items-center gap-3 h-full" aria-label="HieysoN">
         <img id="brand-logo" src="/img/logo/white/favicon-96x96.png" alt="HieysoN Logo" class="h-8 md:h-10 w-auto opacity-90 hover:opacity-100 transition-opacity">
         <span class="text-sm md:text-base font-display font-bold tracking-[0.15em] uppercase text-light-accent dark:text-white transition-colors">HieysoN</span>
-      </div>
+      </a>
 
       <!-- Desktop Nav -->
-      <nav class="hidden md:flex space-x-12 items-center">
-        <a href="#expertise" class="nav-link no-underline text-xs tracking-[0.1em] uppercase text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors py-2">{t['nav.expertise']}</a>
-        <a href="#work" class="nav-link no-underline text-xs tracking-[0.1em] uppercase text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors py-2">{t['nav.work']}</a>
+      <nav class="hidden md:flex space-x-8 lg:space-x-10 items-center" aria-label="Principal">
+        {links.map((l) => (
+          <a href={l.href} class={linkCls(l.active)} {...(l.active ? { 'aria-current': 'page' } : {})}>{l.label}</a>
+        ))}
 
         <!-- Theme Toggle & Lang Toggle -->
-        <div class="flex items-center space-x-6 border-l border-light-border dark:border-dark-border pl-6 ml-6 h-8">
-          <button id="theme-toggle" type="button" class="text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white focus:outline-none focus:ring-0 border-0 bg-transparent p-0 transition-colors">
+        <div class="flex items-center space-x-6 border-l border-light-border dark:border-dark-border pl-6 ml-2 h-8">
+          <button id="theme-toggle" type="button" class="text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white focus:outline-none focus:ring-0 border-0 bg-transparent p-0 transition-colors" aria-label="Theme">
             <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
             <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
           </button>
-          <a href={Astro.url.pathname === '/en/' ? '/' : '/en/'} class="no-underline text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white focus:outline-none transition-colors">
-            {Astro.url.pathname === '/en/' ? 'ES' : 'EN'}
+          <a href={otherLangPath} class="no-underline text-[10px] font-mono tracking-widest uppercase text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white focus:outline-none transition-colors">
+            {isEN ? 'ES' : 'EN'}
           </a>
         </div>
 
@@ -37,11 +62,11 @@ const { contact, socialCompact: socialNetworks } = siteData;
 
       <!-- Mobile Toggle -->
       <div class="md:hidden flex items-center gap-6">
-        <button id="theme-toggle-mobile" type="button" class="text-light-accent dark:text-white focus:outline-none focus:ring-0 border-0 bg-transparent p-0 transition-colors">
+        <button id="theme-toggle-mobile" type="button" class="text-light-accent dark:text-white focus:outline-none focus:ring-0 border-0 bg-transparent p-0 transition-colors" aria-label="Theme">
           <svg id="theme-toggle-light-icon-mobile" class="hidden w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
           <svg id="theme-toggle-dark-icon-mobile" class="hidden w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
         </button>
-        <button id="mobile-btn" class="text-light-accent dark:text-white focus:outline-none focus:ring-0 border-0 bg-transparent p-0 transition-colors">
+        <button id="mobile-btn" class="text-light-accent dark:text-white focus:outline-none focus:ring-0 border-0 bg-transparent p-0 transition-colors" aria-expanded="false" aria-controls="mobile-menu" aria-label="Menu">
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
         </button>
       </div>
@@ -50,24 +75,18 @@ const { contact, socialCompact: socialNetworks } = siteData;
 
   <!-- Mobile Menu -->
   <div id="mobile-menu" class="hidden md:hidden bg-light-900 dark:bg-dark-900 absolute w-full left-0 py-10 px-8 flex flex-col space-y-8 border-b border-light-border dark:border-dark-border pointer-events-auto transition-all duration-500 z-[90] shadow-2xl">
-    <div class="flex flex-col space-y-5">
-      <a href="#hero" class="no-underline text-xs tracking-[0.2em] uppercase pb-4 border-b border-light-border/50 dark:border-dark-border/50 text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors flex items-center justify-between group">
-        <span>{t['nav.home']}</span>
-        <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-      </a>
-      <a href="#expertise" class="no-underline text-xs tracking-[0.2em] uppercase pb-4 border-b border-light-border/50 dark:border-dark-border/50 text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors flex items-center justify-between group">
-        <span>{t['nav.expertise']}</span>
-        <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-      </a>
-      <a href="#work" class="no-underline text-xs tracking-[0.2em] uppercase pb-4 border-b border-light-border/50 dark:border-dark-border/50 text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors flex items-center justify-between group">
-        <span>{t['nav.work']}</span>
-        <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-      </a>
-      <a href="#contact" class="no-underline text-xs tracking-[0.2em] uppercase pb-4 border-b border-light-border/50 dark:border-dark-border/50 text-light-muted dark:text-dark-muted hover:text-light-accent dark:hover:text-white transition-colors flex items-center justify-between group">
+    <nav class="flex flex-col space-y-5" aria-label="Móvil">
+      {links.map((l) => (
+        <a href={l.href} class={mobileLinkCls(l.active)} {...(l.active ? { 'aria-current': 'page' } : {})}>
+          <span>{l.label}</span>
+          <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        </a>
+      ))}
+      <a href="#contact" class={mobileLinkCls(false)}>
         <span>{t['nav.contact']}</span>
         <svg class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
       </a>
-    </div>
+    </nav>
 
     <!-- Contact & Brand Info -->
     <div class="flex flex-col space-y-4 pt-4 border-t border-light-border/30 dark:border-dark-border/30">
@@ -97,16 +116,28 @@ const { contact, socialCompact: socialNetworks } = siteData;
 </header>
 
 <script>
-  // Mobile menu toggle
+  // Mobile menu toggle (con aria-expanded + cierre con Escape)
   const mobileBtn = document.getElementById('mobile-btn');
   const mobileMenu = document.getElementById('mobile-menu');
-  
+
+  function setMenu(open) {
+    mobileMenu?.classList.toggle('hidden', !open);
+    mobileBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
   mobileBtn?.addEventListener('click', () => {
-    mobileMenu?.classList.toggle('hidden');
+    setMenu(mobileMenu?.classList.contains('hidden') ?? false);
   });
-  
+
   mobileMenu?.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => mobileMenu?.classList.add('hidden'));
+    link.addEventListener('click', () => setMenu(false));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileMenu && !mobileMenu.classList.contains('hidden')) {
+      setMenu(false);
+      mobileBtn?.focus();
+    }
   });
 
   // Navbar scroll effect (throttled with rAF)
@@ -132,7 +163,7 @@ const { contact, socialCompact: socialNetworks } = siteData;
     const darkIcon = document.getElementById('theme-toggle-dark-icon');
     const lightIconMobile = document.getElementById('theme-toggle-light-icon-mobile');
     const darkIconMobile = document.getElementById('theme-toggle-dark-icon-mobile');
-    
+
     if (isDark) {
       darkIcon?.classList.add('hidden');
       lightIcon?.classList.remove('hidden');
@@ -171,8 +202,4 @@ const { contact, socialCompact: socialNetworks } = siteData;
     }
   }
   updateLogo();
-  
-  // Update logo on theme toggle (no persistent MutationObserver needed)
-  const origToggle = toggleTheme;
-  // Already handled by toggleTheme calling updateLogo via updateThemeIcons flow
 </script>
