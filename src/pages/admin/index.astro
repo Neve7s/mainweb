@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { apiFetch, btnCls, requireAdmin } from '../../lib/admin';
+import { apiFetch, btnCls, btnPrimaryCls, requireAdmin } from '../../lib/admin';
 
 const me = await requireAdmin(Astro);
 if (!me) return Astro.redirect('/admin/login');
@@ -20,6 +20,7 @@ async function count(path: string): Promise<number> {
   }
 }
 
+const rep = Astro.url.searchParams.get('republicar');
 const cards = [
   { href: '/admin/servicios', label: 'Servicios', n: await count('/api/admin/services') },
   { href: '/admin/proyectos', label: 'Proyectos', n: await count('/api/admin/projects') },
@@ -55,6 +56,23 @@ const cards = [
         </a>
       ))}
     </div>
+
+    <form method="POST" action="/admin/republicar" class="mt-10 border border-light-border dark:border-dark-border p-6 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <p class="font-mono text-xs text-light-accent dark:text-white uppercase tracking-[0.15em]">Republicar sitio</p>
+        <p class="font-mono text-[11px] text-light-muted dark:text-dark-muted mt-1">Reconstruye la web con los datos actuales (tarda 2-4 min).</p>
+      </div>
+      <button type="submit" class={btnPrimaryCls}>Republicar</button>
+    </form>
+    {rep === 'ok' && (
+      <p class="font-mono text-sm text-emerald-600 dark:text-emerald-400 mt-4">Despliegue lanzado en Coolify. Revisa el panel para ver el progreso.</p>
+    )}
+    {rep === 'error' && (
+      <p class="font-mono text-sm text-red-600 dark:text-red-400 mt-4">No se pudo lanzar el despliegue. Revisa COOLIFY_REDEPLOY_HOOK.</p>
+    )}
+    {rep === 'off' && (
+      <p class="font-mono text-sm text-light-muted dark:text-dark-muted mt-4">Hook no configurado (COOLIFY_REDEPLOY_HOOK). Ver docs/deploy-coolify.md.</p>
+    )}
 
     <p class="font-mono text-[11px] text-light-muted dark:text-dark-muted mt-8">
       API: {import.meta.env.API_URL || 'http://localhost:3001'} · <a href="/" class="underline">ver sitio</a>

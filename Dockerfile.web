@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+# Web Astro (prod). Build standalone con adapter node.
+# El build usa API_URL si alcanza a la API; si no, compila con los JSON locales.
+FROM node:22-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev || npm install --omit=dev
+
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . ./
+RUN npm install && npm run build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production PORT=4321 HOST=0.0.0.0
+RUN addgroup -S app && adduser -S app -G app
+COPY --chown=app:app package.json package-lock.json* ./
+RUN (npm ci --omit=dev || npm install --omit=dev) && npm cache clean --force
+COPY --chown=app:app --from=build /app/dist ./dist
+USER app
+EXPOSE 4321
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://127.0.0.1:4321/api/health || exit 1
+ENTRYPOINT ["node", "./dist/server/entry.mjs"]

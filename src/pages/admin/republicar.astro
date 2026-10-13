@@ -1,0 +1,23 @@
+---
+export const prerender = false;
+
+import { requireAdmin } from '../../lib/admin';
+
+const me = await requireAdmin(Astro);
+if (!me) return Astro.redirect('/admin/login');
+if (Astro.request.method !== 'POST') return Astro.redirect('/admin');
+
+// Dispara el redeploy del servicio web en Coolify (rebuild con datos frescos).
+// Configura COOLIFY_REDEPLOY_HOOK (server-only, sin prefijo PUBLIC_) en Coolify.
+const hook = import.meta.env.COOLIFY_REDEPLOY_HOOK;
+let status = 'off';
+if (hook) {
+  try {
+    const r = await fetch(hook, { method: 'POST', signal: AbortSignal.timeout(15000) });
+    status = r.ok ? 'ok' : 'error';
+  } catch {
+    status = 'error';
+  }
+}
+return Astro.redirect(`/admin?republicar=${status}`);
+---

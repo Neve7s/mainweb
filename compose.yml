@@ -1,8 +1,10 @@
 name: hieyson
-# Compose para paridad prod en local. Dev diario: `npm run dev` en raíz y en api/ (más rápido).
+# Paridad prod en local. Dev diario: `npm run dev` en raíz y en api/ (más rápido).
+# La API migra sola al arrancar (entrypoint.sh). El seed se corre una sola vez:
+#   docker compose exec api node dist/seed.js
 # NOTA: dentro del contenedor `localhost` NO es tu Postgres local.
-# Para usar tu Postgres local desde compose, cambia DATABASE_URL a:
-#   postgres://postgres:adm@host.docker.internal:5432/hieyson
+# Para compose contra tu Postgres local usa:
+#   DATABASE_URL=postgres://postgres:adm@host.docker.internal:5432/hieyson
 services:
   api:
     build:
@@ -11,9 +13,36 @@ services:
     env_file:
       - .env
     environment:
+      # Compose corre en tu máquina dev: el Postgres local se alcanza por
+      # host.docker.internal (gana a env_file). En Coolify este archivo no se
+      # usa: la DATABASE_URL se pone en el panel (tu Postgres del servidor).
+      DATABASE_URL: postgres://postgres:adm@host.docker.internal:5432/hieyson
       PORT: 3001
     ports:
       - "3001:3001"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    env_file:
+      - .env
+    environment:
+      PORT: 4321
+      HOST: 0.0.0.0
+    ports:
+      - "4321:4321"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      api:
+        condition: service_started
     restart: unless-stopped

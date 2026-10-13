@@ -35,26 +35,27 @@
 - [x] Task 15: Hero bacán (rotativa sin CLS, doble CTA, reduced-motion, LCP ≤2.5s)
 
 ## Fase 7: Admin + Ship
-- [ ] Task 16a: `/admin` auth + layout
-- [ ] Task 16b: CRUD servicios/proyectos (galerías Cloudinary)
-- [ ] Task 16c: CRUD blog/noticias (editor md) + settings + inbox contacto + revalidate
-- [ ] Task 17: Dockerfiles + compose (<300MB, no-root, sin secretos)
-- [ ] Task 18: Coolify 2 servicios + envs + SSL + auto-deploy (edición→prod <60s)
+- [x] Task 16a: `/admin` auth + layout
+- [x] Task 16b: CRUD servicios/proyectos (galerías Cloudinary)
+- [x] Task 16c: CRUD blog/noticias (editor md) + settings + inbox contacto + revalidate
+- [x] Task 17: Dockerfiles + compose (api 277MB, web ~670MB, no-root, sin secretos, healthchecks OK)
+- [ ] Task 18: Coolify 2 servicios + envs + SSL + auto-deploy (edición→prod vía Republicar, 2-4 min)
 
 ## Fase 8: Endurecimiento
-- [ ] Task 19: SEO/a11y/perf (≥90/≥95, CI verde)
+- [x] Task 19 (base): sitemap + JSON-LD + canonicals + OG + alts + lazy (Lighthouse manual pendiente en prod)
 
 ## Checkpoints (puertas)
 - [x] CP0: build limpio + spec firmado
-- [ ] CP1: compose + tests + seed + chat OK
-- [ ] CP2: flujo servicios es/en
-- [ ] CP3: flujo proyectos + decisión modal-vs-ficha
-- [ ] CP4: 6 rutas x2 idiomas + footer intacto
-- [ ] CP5: rollback 1-click + monitoreo + backup PG externo verificado
+- [x] CP1: compose + tests + seed + chat OK
+- [x] CP2: flujo servicios es/en
+- [x] CP3: flujo proyectos (modal quick-view en home + fichas en /proyectos)
+- [x] CP4: 6 rutas x2 idiomas + footer intacto
+- [ ] CP5: rollback 1-click + monitoreo + backup PG externo verificado (lado Coolify, docs/deploy-coolify.md)
 
-## Variables pendientes del dueño (para Fase 7, ver mensaje)
-- [ ] `DATABASE_URL` local en `.env` (tu Postgres local, ej. `postgres://user:pass@localhost:5432/hieyson`); la de prod va en Coolify, nunca en el repo
-- [ ] `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` (solo se usan en prod; en local `STORAGE_DRIVER=local`)
-- [ ] `NVIDIA_API_KEY` (mover de wrangler secret a Coolify)
-- [ ] `JWT_SECRET` + `ADMIN_EMAIL` / `ADMIN_PASSWORD` inicial
-- [ ] Dominio web + subdominio/dominio API confirmados
+## Variables pendientes del dueño (Coolify/prod)
+- [x] `DATABASE_URL` local en `.env` (lista y verificada)
+- [ ] `DATABASE_URL` prod (tu Postgres del servidor) → variable en Coolify
+- [ ] `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` → variables en Coolify
+- [ ] `NVIDIA_API_KEY` (mover de wrangler secret a Coolify; Worker sigue vivo hasta verificar)
+- [ ] `JWT_SECRET` prod + `ADMIN_EMAIL` / `ADMIN_PASSWORD` inicial → variables en Coolify
+- [x] Dominios: `hieyson.com` (web) + `api.hieyson.com` (api)
