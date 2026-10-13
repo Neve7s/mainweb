@@ -1,0 +1,80 @@
+---
+export const prerender = true;
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import GlobalModal from '../../../components/GlobalModal.astro';
+import ServiceModal from '../../../components/ServiceModal.astro';
+import { getServices } from '../../../lib/cms';
+
+import en from '../../../data/jsons/locales/en.json';
+
+const t = en;
+const services = await getServices('en');
+
+const icons: Record<string, string> = {
+  terminal: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />',
+  bot: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />',
+  workflow: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />',
+  briefcase: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />',
+};
+---
+
+<BaseLayout
+  title="Services — HieysoN | Custom Software, AI & Automations"
+  description="All our services: custom software development, AI agents and chatbots, n8n automations and B2B systems with dashboards."
+  lang="en"
+  canonicalURL="https://hieyson.com/en/servicios"
+>
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <Header t={t} />
+
+    <main class="flex-grow pt-36 pb-24">
+      <div class="max-w-7xl mx-auto px-6 lg:px-12">
+        <span class="text-xs font-mono tracking-[0.2em] text-light-muted dark:text-dark-muted uppercase mb-4 block">{t['expertise.num']}</span>
+        <h1 class="text-4xl md:text-5xl font-display font-bold uppercase tracking-tighter text-light-accent dark:text-white mb-6">
+          <span>{t['expertise.title_1']} </span><br>
+          <span class="text-light-muted dark:text-dark-muted">{t['expertise.title_2']}</span>
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 font-light max-w-xl text-sm mb-16">{t['expertise.desc']}</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-light-border dark:bg-dark-border border border-light-border dark:border-dark-border">
+          {services.map((service, idx) => (
+            <div data-service-id={service.id}
+              class="bg-light-900 dark:bg-dark-900 p-10 lg:p-12 hover:bg-light-800 dark:hover:bg-dark-800 cursor-pointer hover:shadow-2xl transition-all duration-300 group glow-on-hover">
+              <div class="flex items-start justify-between mb-10">
+                <svg class="w-8 h-8 text-light-accent dark:text-white group-hover:scale-110 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" set:html={icons[service.icon] ?? icons['terminal']} />
+                <span class="font-mono text-xs text-light-muted dark:text-dark-muted">0{idx + 1}</span>
+              </div>
+              <p class="text-[10px] font-mono tracking-[0.2em] uppercase text-light-muted dark:text-dark-muted mb-3">{service.category}</p>
+              <h2 class="text-xl font-mono tracking-tight text-light-accent dark:text-white mb-4">{service.title}</h2>
+              <p class="text-sm text-light-muted dark:text-dark-muted font-light leading-relaxed mb-6">{service.desc}</p>
+              <span class="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.15em] text-light-accent dark:text-white opacity-70 group-hover:opacity-100 transition-opacity">
+                View detail
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
+
+    <Footer t={t} />
+  </div>
+
+  <GlobalModal />
+  <ServiceModal lang="en" />
+</BaseLayout>
+
+<script>
+  document.querySelectorAll('[data-service-id]').forEach(card => {
+    card.addEventListener('click', () => {
+      const serviceId = card.getAttribute('data-service-id');
+      if (serviceId && window.renderServiceModal) {
+        window.renderServiceModal(serviceId);
+        window.openModal();
+      }
+    });
+  });
+</script>

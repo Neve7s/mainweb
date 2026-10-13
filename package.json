@@ -12,6 +12,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/node": "^11.1.7",
     "astro": "^7.0.9",
     "gsap": "^3.15.0",
     "three": "^0.185.1"

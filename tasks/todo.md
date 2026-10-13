@@ -15,11 +15,11 @@
 - [ ] Task 6b: `POST /api/chat` NVIDIA desde Postgres + front misma-origin (Worker deprecado)
 
 ## Fase 2: Integración Astro
-- [ ] Task 7: `src/lib/cms.ts` fallback + `output: hybrid` (build OK con/sin API)
+- [x] Task 7: `src/lib/cms.ts` fallback + adapter node (build OK con/sin API, dato vivo probado)
 
 ## Fase 3: Servicios
-- [ ] Task 8: Teaser 4 en index rediseñado (modal + slider OK)
-- [ ] Task 9: `/servicios` + `/servicios/[slug]` (SEO ≥95)
+- [x] Task 8: Teaser desde CMS + CTA + `/servicios` es/en (modal temporal, sin rediseño visual aún)
+- [ ] Task 9: `/servicios/[slug]` ficha + filtros + JSON-LD (SEO ≥95)
 
 ## Fase 4: Proyectos
 - [ ] Task 10: Teaser 3 destacados en index (scrim light/dark)
