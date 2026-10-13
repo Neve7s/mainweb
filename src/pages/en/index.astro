@@ -18,7 +18,7 @@ import ProjectModal from '../../components/ProjectModal.astro';
 import NeuralCanvas from '../../components/NeuralCanvas.astro';
 
 import en from '../../data/jsons/locales/en.json';
-import { getPosts, getProjects, getServices } from '../../lib/cms';
+import { getClients, getPosts, getProjects, getServices, getSettings } from '../../lib/cms';
 import PostsTeaser from '../../components/PostsTeaser.astro';
 
 const t = en;
@@ -26,6 +26,11 @@ const servicesPreview = await getServices('en', 4);
 const projectsPreview = await getProjects('en', { destacado: true, limit: 3 });
 const blogTeaser = await getPosts('blog', 'en', { limit: 3 });
 const noticiasTeaser = await getPosts('noticia', 'en', { limit: 3 });
+const siteSettings = await getSettings();
+const heroStats = {
+  projects: (await getProjects('en')).length,
+  clients: (await getClients()).length,
+};
 ---
 
 <BaseLayout
@@ -46,7 +51,7 @@ const noticiasTeaser = await getPosts('noticia', 'en', { limit: 3 });
     <Header t={t} />
     
     <main class="flex-grow">
-      <Hero t={t} />
+      <Hero t={t} lang="en" settings={siteSettings} stats={heroStats} />
       <Expertise t={t} services={servicesPreview} lang="en" />
       <Projects t={t} projects={projectsPreview} lang="en" />
       <PostsTeaser t={t} numKey="blog.num" titleKey="blog.title" descKey="blog.desc" viewAllKey="blog.view_all" emptyKey="blog.empty" posts={blogTeaser.items} viewAllHref="/en/blog" base="/en/blog" lang="en" />

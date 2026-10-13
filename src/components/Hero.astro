@@ -4,13 +4,23 @@ import RobotScene from './RobotScene.astro';
 
 interface Props {
   t: Record<string, string>;
+  lang?: 'es' | 'en';
+  settings?: Record<string, any>;
+  stats?: { projects: number; clients: number };
 }
 
-const { t } = Astro.props;
+const { t, lang = 'es', settings, stats } = Astro.props;
+// Textos editables desde /admin (site_settings.hero.*); si no existen, locales.
+const heroCfg = (settings?.['hero'] ?? {}) as Record<string, string>;
+const badge = (lang === 'es' ? heroCfg['badge_es'] : heroCfg['badge_en']) ?? t['hero.badge'];
+const title = (lang === 'es' ? heroCfg['title_es'] : heroCfg['title_en']) ?? t['hero.title_1'];
+const subtitle = (lang === 'es' ? heroCfg['subtitle_es'] : heroCfg['subtitle_en']) ?? t['hero.subtitle_1'];
+const words = [t['hero.rotate_1'], t['hero.rotate_2'], t['hero.rotate_3']].filter(Boolean);
+const badges = ['Astro', 'AI Agents', 'n8n', 'PostgreSQL', 'Django', 'WhatsApp API'];
 ---
 
 <section id="hero" class="relative min-h-[100svh] flex items-center overflow-x-hidden">
-  <!-- Matrix rain background -->
+  <!-- Matrix rain background (desactivado en móvil / reduced-motion por JS) -->
   <canvas id="matrix-canvas" class="absolute inset-0 w-full h-full z-0 opacity-[0.05]"></canvas>
 
   <!-- Grid pattern overlay -->
@@ -27,7 +37,7 @@ const { t } = Astro.props;
       <!-- Status badge -->
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 dark:border-emerald-400/25 bg-emerald-500/[0.06] dark:bg-emerald-400/[0.06] mb-6" data-scroll-reveal="up" style="--scroll-delay: 0.05s">
         <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
-        <span class="text-[11px] font-mono uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400/90">{t['hero.badge']}</span>
+        <span class="text-[11px] font-mono uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400/90">{badge}</span>
       </div>
 
       <!-- Overline -->
@@ -36,13 +46,19 @@ const { t } = Astro.props;
       </p>
 
       <!-- Headline -->
-      <h1 class="font-display text-[1.75rem] sm:text-4xl xl:text-[3.25rem] leading-[1.12] font-bold tracking-tight text-light-accent dark:text-white mb-5 max-w-[560px]" data-scroll-reveal="up" style="--scroll-delay: 0.15s">
-        {t['hero.title_1']}
+      <h1 class="font-display text-[1.75rem] sm:text-4xl xl:text-[3.25rem] leading-[1.12] font-bold tracking-tight text-light-accent dark:text-white mb-3 max-w-[560px]" data-scroll-reveal="up" style="--scroll-delay: 0.15s">
+        {title}
       </h1>
+
+      <!-- Rotating line (altura reservada: sin CLS) -->
+      <p class="font-display text-lg sm:text-xl xl:text-2xl font-bold tracking-tight mb-5 min-h-[2.2em] max-w-[560px]" data-scroll-reveal="up" style="--scroll-delay: 0.18s" aria-live="polite">
+        <span class="text-light-muted dark:text-white/50">{t['hero.rotate_prefix']} </span>
+        <span id="hero-rotate" data-words={JSON.stringify(words)} class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-cyan-500 dark:from-emerald-400 dark:to-cyan-400">{words[0] ?? ''}</span><span class="text-emerald-500 dark:text-emerald-400" aria-hidden="true">▌</span>
+      </p>
 
       <!-- Subtitle -->
       <p class="text-sm sm:text-base lg:text-lg text-light-muted dark:text-white/55 leading-relaxed max-w-[520px] mb-9" data-scroll-reveal="up" style="--scroll-delay: 0.2s">
-        {t['hero.subtitle_1']}
+        {subtitle}
       </p>
 
       <!-- CTAs -->
@@ -58,6 +74,28 @@ const { t } = Astro.props;
           </svg>
           {t['hero.cta_secondary']}
         </button>
+      </div>
+
+      <!-- Prueba social (datos vivos de la DB) -->
+      {stats && (
+        <div class="flex items-center gap-6 mt-10" data-scroll-reveal="up" style="--scroll-delay: 0.3s">
+          <div class="text-center lg:text-left">
+            <p class="font-display text-2xl font-bold text-light-accent dark:text-white">{stats.projects}</p>
+            <p class="text-[10px] font-mono uppercase tracking-[0.15em] text-light-muted dark:text-white/40">{t['hero.stats_projects']}</p>
+          </div>
+          <div class="w-px h-10 bg-light-border dark:bg-dark-border"></div>
+          <div class="text-center lg:text-left">
+            <p class="font-display text-2xl font-bold text-light-accent dark:text-white">{stats.clients}</p>
+            <p class="text-[10px] font-mono uppercase tracking-[0.15em] text-light-muted dark:text-white/40">{t['hero.stats_clients']}</p>
+          </div>
+        </div>
+      )}
+
+      <!-- Stack badges -->
+      <div class="flex flex-wrap justify-center lg:justify-start gap-2 mt-6" data-scroll-reveal="up" style="--scroll-delay: 0.35s">
+        {badges.map((b) => (
+          <span class="text-[10px] font-mono px-2.5 py-1 border border-light-border dark:border-dark-border text-light-muted dark:text-dark-muted">{b}</span>
+        ))}
       </div>
     </div>
 
@@ -77,14 +115,41 @@ const { t } = Astro.props;
 
 <script>
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
   // Chat CTA → opens NOSYEIH chatbot
   document.getElementById('chat-cta')?.addEventListener('click', () => {
     document.dispatchEvent(new CustomEvent('open-chat'));
   });
 
-  if (!prefersReducedMotion) {
-    // --- Matrix rain ---
+  // Rotativa de palabras (typewriter). Sin motion → primera palabra fija.
+  const rotEl = document.getElementById('hero-rotate');
+  if (rotEl) {
+    const words = JSON.parse(rotEl.dataset.words || '[]');
+    if (!prefersReducedMotion && words.length > 1) {
+      let wi = 0, ci = words[0].length, deleting = true;
+      const tick = () => {
+        const word = words[wi];
+        if (deleting) {
+          ci--;
+          if (ci <= 0) { ci = 0; deleting = false; wi = (wi + 1) % words.length; }
+        } else {
+          ci++;
+          if (ci >= words[wi].length) {
+            rotEl.textContent = words[wi];
+            setTimeout(() => { deleting = true; tick(); }, 1800);
+            return;
+          }
+        }
+        rotEl.textContent = words[wi].slice(0, ci);
+        setTimeout(tick, deleting ? 35 : 60);
+      };
+      setTimeout(() => { deleting = true; ci = words[0].length; tick(); }, 2000);
+    }
+  }
+
+  if (!prefersReducedMotion && !isMobile) {
+    // --- Matrix rain (solo desktop) ---
     const matrixCanvas = document.getElementById('matrix-canvas') as HTMLCanvasElement;
     if (matrixCanvas) {
       const ctx = matrixCanvas.getContext('2d');
@@ -121,5 +186,8 @@ const { t } = Astro.props;
         window.addEventListener('resize', resize);
       }
     }
+  } else {
+    // Sin animación: ocultar canvas para ahorrar GPU
+    document.getElementById('matrix-canvas')?.remove();
   }
 </script>

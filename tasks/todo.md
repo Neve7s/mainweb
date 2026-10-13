@@ -31,8 +31,8 @@
 - [x] Task 13: Teasers index 3 blogs + 3 noticias (ocultos si vacíos, LCP +0.3s máx)
 
 ## Fase 6: Header + Hero
-- [ ] Task 14: Header nav real (5 destinos, activo por ruta, a11y, i18n)
-- [ ] Task 15: Hero bacán (rotativa sin CLS, doble CTA, reduced-motion, LCP ≤2.5s)
+- [x] Task 14: Header nav real (5 destinos, activo por ruta, a11y, i18n)
+- [x] Task 15: Hero bacán (rotativa sin CLS, doble CTA, reduced-motion, LCP ≤2.5s)
 
 ## Fase 7: Admin + Ship
 - [ ] Task 16a: `/admin` auth + layout
