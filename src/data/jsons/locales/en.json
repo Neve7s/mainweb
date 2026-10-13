@@ -69,5 +69,6 @@
   "services.prev": "Previous",
   "services.next": "Next",
   "services.view_all": "View all services",
+  "services.filter_all": "All",
   "footer.rights": "ALL RIGHTS RESERVED."
 }

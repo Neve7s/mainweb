@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getService, getServices, getSettings } from '../../lib/cms';
+
+import es from '../../data/jsons/locales/es.json';
+
+export async function getStaticPaths() {
+  const services = await getServices('es');
+  return services.map((s) => ({ params: { slug: s.slug } }));
+}
+
+const { slug } = Astro.params;
+const service = await getService(slug ?? '', 'es');
+if (!service) return Astro.redirect('/servicios');
+
+const t = es;
+const all = await getServices('es');
+const related = all.filter((s) => s.slug !== slug).slice(0, 3);
+const settings = await getSettings();
+const contact = (settings['contact'] ?? {}) as { whatsappUrl?: string };
+const waBase = contact.whatsappUrl ?? 'https://wa.me/51935533845';
+const waLink = `${waBase}?text=${encodeURIComponent(`Hola, me interesa el servicio: ${service.title}`)}`;
+const canonical = `https://hieyson.com/servicios/${slug}`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: service.title,
+  description: service.desc,
+  url: canonical,
+  provider: { '@type': 'Organization', name: 'HieysoN', url: 'https://hieyson.com' },
+};
+---
+
+<BaseLayout
+  title={`${service.title} — HieysoN`}
+  description={service.desc.slice(0, 155)}
+  lang="es"
+  canonicalURL={canonical}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <Header t={t} />
+
+    <main class="flex-grow pt-36 pb-24">
+      <div class="max-w-5xl mx-auto px-6 lg:px-12">
+        <nav class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-10">
+          <a href="/" class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">Inicio</a>
+          <span>/</span>
+          <a href="/servicios" class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">Servicios</a>
+          <span>/</span>
+          <span class="text-light-accent dark:text-white">{service.title}</span>
+        </nav>
+
+        <p class="text-[11px] font-mono tracking-[0.25em] uppercase text-light-muted dark:text-dark-muted mb-4">{service.category}</p>
+        <h1 class="text-3xl md:text-5xl font-display font-bold tracking-tight text-light-accent dark:text-white mb-6">{service.title}</h1>
+        <p class="text-lg md:text-xl text-light-muted dark:text-white/70 font-light leading-relaxed mb-8">{service.human_title}</p>
+        <p class="text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-16 max-w-3xl">{service.desc}</p>
+
+        <h2 class="text-xs font-mono tracking-[0.2em] uppercase text-light-muted dark:text-dark-muted mb-8">Qué incluye</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-20">
+          {service.examples.map((ex, idx) => (
+            <div class="border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-6">
+              <span class="font-mono text-[11px] text-light-muted dark:text-dark-muted">0{idx + 1}</span>
+              <h3 class="font-mono text-sm font-bold text-light-accent dark:text-white mt-2 mb-2">{ex.title}</h3>
+              <p class="text-sm text-light-muted dark:text-dark-muted font-light leading-relaxed">{ex.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div class="border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-8 md:p-12 text-center mb-20">
+          <h2 class="text-2xl font-display font-bold text-light-accent dark:text-white mb-3">{service.cta_heading}</h2>
+          <p class="text-sm text-light-muted dark:text-dark-muted font-light mb-8">{service.cta_desc}</p>
+          <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href={waLink} target="_blank" rel="noopener" class="no-underline text-xs font-mono uppercase tracking-[0.15em] bg-light-accent text-light-900 dark:bg-white dark:text-black px-8 py-4 hover:opacity-90 transition-opacity">{service.cta_button}</a>
+            <a href="/servicios" class="no-underline text-xs font-mono uppercase tracking-[0.15em] border border-light-border dark:border-dark-border text-light-accent dark:text-white px-8 py-4 hover:bg-light-accent hover:text-light-900 dark:hover:bg-white dark:hover:text-black transition-all">Ver otros servicios</a>
+          </div>
+        </div>
+
+        <h2 class="text-xs font-mono tracking-[0.2em] uppercase text-light-muted dark:text-dark-muted mb-8">Servicios relacionados</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-light-border dark:bg-dark-border border border-light-border dark:border-dark-border">
+          {related.map((r) => (
+            <a href={`/servicios/${r.slug}`} class="no-underline bg-light-900 dark:bg-dark-900 p-8 hover:bg-light-800 dark:hover:bg-dark-800 transition-colors group">
+              <p class="text-[10px] font-mono tracking-[0.2em] uppercase text-light-muted dark:text-dark-muted mb-2">{r.category}</p>
+              <h3 class="font-mono text-sm text-light-accent dark:text-white group-hover:underline">{r.title}</h3>
+            </a>
+          ))}
+        </div>
+      </div>
+    </main>
+
+    <Footer t={t} />
+  </div>
+</BaseLayout>
