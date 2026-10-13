@@ -9,11 +9,15 @@ interface Props {
 }
 
 const { t, lang = 'es', settings, stats } = Astro.props;
-// Textos editables desde /admin (site_settings.hero.*); si no existen, locales.
+// Textos editables desde /admin (site_settings.hero.*); vacío o ausente = locales.
 const heroCfg = (settings?.['hero'] ?? {}) as Record<string, string>;
-const badge = (lang === 'es' ? heroCfg['badge_es'] : heroCfg['badge_en']) ?? t['hero.badge'];
-const title = (lang === 'es' ? heroCfg['title_es'] : heroCfg['title_en']) ?? t['hero.title_1'];
-const subtitle = (lang === 'es' ? heroCfg['subtitle_es'] : heroCfg['subtitle_en']) ?? t['hero.subtitle_1'];
+const pick = (base: string, fb: string) => {
+  const v = lang === 'es' ? heroCfg[`${base}_es`] : heroCfg[`${base}_en`];
+  return v && v.trim() !== '' ? v : fb;
+};
+const badge = pick('badge', t['hero.badge']);
+const title = pick('title', t['hero.title_1']);
+const subtitle = pick('subtitle', t['hero.subtitle_1']);
 const words = [t['hero.rotate_1'], t['hero.rotate_2'], t['hero.rotate_3']].filter(Boolean);
 const badges = ['Astro', 'AI Agents', 'n8n', 'PostgreSQL', 'Django', 'WhatsApp API'];
 ---
