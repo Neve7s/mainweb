@@ -3,13 +3,13 @@
 > Fuente: `tasks/plan.md`. Un `in_progress` a la vez. Marcar solo con verificación pasada.
 
 ## Fase 0: Preparación
-- [ ] Task 1: Saneamiento Git + `.env.example` completo + tag `v1-static-baseline`
-- [ ] Task 2: Spec `specs/content-model.md` (blog↔noticias separados, galerías 1..N)
+- [x] Task 1: Saneamiento Git + `.env.example` completo + tag `v1-static-baseline`
+- [x] Task 2: Spec `specs/content-model.md` (blog↔noticias separados, galerías 1..N)
 
 ## Fase 1: Backend + PostgreSQL externo
-- [ ] Task 3: Scaffold `api/` + entrypoint migrate-on-boot + compose (health OK, restart idempotente)
-- [ ] Task 4: Schema 8 tablas (incl. `contact_messages` vacía) + seed idempotente
-- [ ] Task 5: Endpoints lectura (`/api/blog`, `/api/noticias` separados) + tests verdes
+- [x] Task 3: Scaffold `api/` + entrypoint migrate-on-boot + compose (health OK, restart idempotente)
+- [x] Task 4: Schema 8 tablas (incl. `contact_messages` vacía) + seed idempotente
+- [x] Task 5: Endpoints lectura (`/api/blog`, `/api/noticias` separados) + tests verdes
 - [ ] Task 5b: `POST /api/contact` (Zod + honeypot + rate-limit) + Footer cableado
 - [ ] Task 6: Auth + CRUD + upload dual (local `uploads/<tipo>/` | Cloudinary) + tests verdes
 - [ ] Task 6b: `POST /api/chat` NVIDIA desde Postgres + front misma-origin (Worker deprecado)
@@ -45,7 +45,7 @@
 - [ ] Task 19: SEO/a11y/perf (≥90/≥95, CI verde)
 
 ## Checkpoints (puertas)
-- [ ] CP0: build limpio + spec firmado
+- [x] CP0: build limpio + spec firmado
 - [ ] CP1: compose + tests + seed + chat OK
 - [ ] CP2: flujo servicios es/en
 - [ ] CP3: flujo proyectos + decisión modal-vs-ficha
