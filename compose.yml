@@ -1,0 +1,19 @@
+name: hieyson
+# Compose para paridad prod en local. Dev diario: `npm run dev` en raíz y en api/ (más rápido).
+# NOTA: dentro del contenedor `localhost` NO es tu Postgres local.
+# Para usar tu Postgres local desde compose, cambia DATABASE_URL a:
+#   postgres://postgres:adm@host.docker.internal:5432/hieyson
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file:
+      - .env
+    environment:
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

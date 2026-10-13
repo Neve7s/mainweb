@@ -1,46 +1,33 @@
-# Astro Starter Kit: Basics
+# HieysoN Web — hieyson.com
+
+Plataforma de HieysoN: frontend **Astro 7** + backend **Hono + Drizzle + PostgreSQL**. Fuente única de verdad en Postgres (servicios, proyectos, blog, noticias, testimonios, clientes, mensajes de contacto). Admin en `hieyson.com/admin`. Deploy: GitHub → Coolify en VPS propio.
+
+## Estructura
+
+```
+src/            → Frontend Astro (hybrid SSR, i18n es/en)
+api/            → Backend Hono (health, lectura pública, auth+CRUD, upload, chat IA)
+api/drizzle/    → Migraciones SQL (se aplican solas al arrancar en prod)
+specs/          → Spec congelado del modelo de contenido
+tasks/          → Plan y checklist de implementación
+worker/         → (deprecado) Worker Cloudflare del chat, migrado a POST /api/chat
+uploads/        → Uploads locales en dev (STORAGE_DRIVER=local). En prod: Cloudinary.
+```
+
+## Desarrollo local
+
+Requiere Node ≥22 y tu PostgreSQL local. Copia `.env.example` a `.env` y apunta `DATABASE_URL` a tu base `hieyson`.
 
 ```sh
-npm create astro@latest -- --template basics
+# Terminal 1 — backend (http://localhost:3001, /health)
+cd api && npm install && npm run dev
+
+# Terminal 2 — frontend (http://localhost:4321)
+npm install && npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Comandos API: `npm run db:generate` (nueva migración), `npm run db:migrate`, `npm run db:seed` (idempotente), `npm test`, `npm run build`.
 
-## 🚀 Project Structure
+## Deploy (Coolify)
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
-
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Servicios `web` (Dockerfile.web) + `api` (Dockerfile.api, migra solo al arrancar). Postgres y Cloudinary son externos: sus credenciales van como variables en Coolify, nunca en el repo. Detalle en `tasks/plan.md` y `docs/deploy-coolify.md`.

@@ -27,6 +27,9 @@ worker/.dev.vars
 # leftover scaffold (real page lives in src/pages/caballo-de-ajedrez-3d.astro)
 caballo-de-ajedrez-3d/
 
+# local uploads (dev con STORAGE_DRIVER=local; en prod se usa Cloudinary)
+uploads/
+
 # macOS
 .DS_Store
 
