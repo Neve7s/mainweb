@@ -48,13 +48,14 @@ if (Astro.request.method === 'POST') {
       enabled: fd.get(`social.${i}.enabled`) === 'on',
     }));
 
-    const heroFilled = Object.values(hero).some((v) => v.trim() !== '');
+    // Hero SIEMPRE se guarda (aunque esté vacío): vacío = textos por defecto.
+    // Antes se omitía al estar vacío y por eso "volvían" los valores viejos.
     const puts: Array<[string, unknown]> = [
       ['brand', brand],
       ['contact', contact],
       ['social', social],
+      ['hero', hero],
     ];
-    if (heroFilled) puts.push(['hero', hero]);
     for (const [key, value] of puts) {
       const r = await apiFetch(Astro, `/api/admin/settings/${key}`, {
         method: 'PUT',
