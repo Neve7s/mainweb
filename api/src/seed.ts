@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { count, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db, pool } from './db/client';
 import {
   allowedEmails,
@@ -257,20 +257,28 @@ async function seedAllowedEmails() {
 }
 
 async function seedAdminUser() {
-  const [{ n }] = await db.select({ n: count() }).from(users);
-  if (n > 0) {
-    console.log('[seed] users: ya existen, no se toca');
-    return;
-  }
-  const email = process.env.ADMIN_EMAIL;
+  const email = process.env.ADMIN_EMAIL?.toLowerCase().trim();
   const password = process.env.ADMIN_PASSWORD;
-  if (!email || !password) {
-    console.log('[seed] users: sin ADMIN_EMAIL/ADMIN_PASSWORD, se omite (crea el admin luego)');
+  if (!email) {
+    console.log('[seed] users: sin ADMIN_EMAIL, se omite (regístrate en /admin/registro si tu correo está permitido)');
     return;
   }
+  const existing = await db.select().from(users).where(eq(users.email, email));
+  if (!password) {
+    // Solo email: el correo queda autorizado y la clave se define en /admin/registro.
+    console.log(`[seed] users: ${email} sin ADMIN_PASSWORD, define tu clave en /admin/registro`);
+    return;
+  }
+  // Con ADMIN_PASSWORD: crea o SINCRONIZA la clave (sirve para recuperar acceso:
+  // pones la clave nueva en el env, redespliegas, entras, y puedes quitar el env).
   const passwordHash = await bcrypt.hash(password, 12);
-  await db.insert(users).values({ email, passwordHash });
-  console.log(`[seed] users: admin ${email} creado`);
+  if (existing.length === 0) {
+    await db.insert(users).values({ email, passwordHash });
+    console.log(`[seed] users: admin ${email} creado`);
+  } else {
+    await db.update(users).set({ passwordHash }).where(eq(users.email, email));
+    console.log(`[seed] users: clave de ${email} sincronizada desde ADMIN_PASSWORD`);
+  }
 }
 
 async function main() {
