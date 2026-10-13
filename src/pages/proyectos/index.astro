@@ -1,0 +1,95 @@
+---
+export const prerender = true;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getProjects } from '../../lib/cms';
+
+import es from '../../data/jsons/locales/es.json';
+
+const t = es;
+const projects = await getProjects('es');
+const categories = [...new Set(projects.map((p) => p.categoria))];
+---
+
+<BaseLayout
+  title="Proyectos — HieysoN | Soluciones en producción"
+  description="Proyectos reales en producción: SaaS logístico, e-commerce, agentes conversacionales y automatizaciones."
+  lang="es"
+  canonicalURL="https://hieyson.com/proyectos"
+>
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <Header t={t} />
+
+    <main class="flex-grow pt-36 pb-24">
+      <div class="max-w-7xl mx-auto px-6 lg:px-12">
+        <span class="text-xs font-mono tracking-[0.2em] text-light-muted dark:text-dark-muted uppercase mb-4 block">{t['work.num']}</span>
+        <h1 class="text-4xl md:text-5xl font-display font-bold uppercase tracking-tighter text-light-accent dark:text-white mb-10">
+          <span>{t['work.title_1']} </span>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-gray-500 to-gray-900 dark:from-gray-400 dark:to-white">{t['work.title_2']}</span>
+        </h1>
+
+        <div class="flex flex-wrap gap-3 mb-12" id="project-filters">
+          <button data-filter="all" data-active="true" class="filter-btn text-[11px] font-mono uppercase tracking-[0.15em] px-5 py-2.5 border transition-all">{t['projects.filter_all']}</button>
+          {categories.map((cat) => (
+            <button data-filter={cat} data-active="false" class="filter-btn text-[11px] font-mono uppercase tracking-[0.15em] px-5 py-2.5 border transition-all">{cat}</button>
+          ))}
+        </div>
+
+        <div class="space-y-6" id="projects-grid">
+          {projects.map((project) => (
+            <a href={`/proyectos/${project.slug}`} data-category={project.categoria}
+              class="project-card no-underline group relative overflow-hidden border border-light-border dark:border-dark-border bg-dark-900 hover:shadow-2xl transition-all duration-500 glow-on-hover block">
+              <div class="relative h-64 sm:h-80 overflow-hidden bg-dark-900">
+                {project.cover && (
+                  <img src={project.cover} alt={project.titulo} class="w-full h-full object-cover transition-all duration-700 group-hover:scale-105" loading="lazy" />
+                )}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10"></div>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                <span class="text-[10px] font-mono tracking-[0.2em] uppercase text-white/70 mb-2 block">{project.categoria}</span>
+                <h2 class="text-xl sm:text-2xl font-display font-bold uppercase tracking-tight text-white mb-2">{project.titulo}</h2>
+                <p class="text-sm text-white/80 font-light line-clamp-2">{project.descripcion}</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                  {(project.stack.length > 0 ? project.stack : [project.tecnologias_listado]).map((tech) => (
+                    <span class="text-[10px] font-mono px-2 py-1 border border-white/25 text-white/80 bg-black/40 backdrop-blur-sm">{tech}</span>
+                  ))}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </main>
+
+    <Footer t={t} />
+  </div>
+</BaseLayout>
+
+<script>
+  const ACTIVE = ['bg-light-accent', 'text-light-900', 'dark:bg-white', 'dark:text-black', 'border-transparent'];
+  const IDLE = ['bg-transparent', 'text-light-muted', 'dark:text-dark-muted', 'border-light-border', 'dark:border-dark-border'];
+
+  function paint(btn) {
+    const active = btn.getAttribute('data-active') === 'true';
+    btn.classList.remove(...(active ? IDLE : ACTIVE));
+    btn.classList.add(...(active ? ACTIVE : IDLE));
+  }
+
+  const btns = Array.from(document.querySelectorAll('.filter-btn'));
+  const cards = Array.from(document.querySelectorAll('.project-card'));
+  btns.forEach(paint);
+
+  btns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btns.forEach((b) => b.setAttribute('data-active', b === btn ? 'true' : 'false'));
+      btns.forEach(paint);
+      const f = btn.getAttribute('data-filter');
+      cards.forEach((card) => {
+        const show = f === 'all' || card.getAttribute('data-category') === f;
+        card.classList.toggle('hidden', !show);
+      });
+    });
+  });
+</script>

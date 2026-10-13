@@ -1,0 +1,144 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getProject, getProjects, getSettings } from '../../lib/cms';
+
+import es from '../../data/jsons/locales/es.json';
+
+export async function getStaticPaths() {
+  const projects = await getProjects('es');
+  return projects.map((p) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const project = await getProject(slug ?? '', 'es');
+if (!project) return Astro.redirect('/proyectos');
+
+const t = es;
+const all = await getProjects('es');
+const related = [
+  ...all.filter((p) => p.slug !== slug && p.categoria === project.categoria),
+  ...all.filter((p) => p.slug !== slug && p.categoria !== project.categoria),
+].slice(0, 3);
+const settings = await getSettings();
+const contact = (settings['contact'] ?? {}) as { whatsappUrl?: string };
+const waBase = contact.whatsappUrl ?? 'https://wa.me/51935533845';
+const waLink = `${waBase}?text=${encodeURIComponent(`Hola, me interesa un proyecto como: ${project.titulo}`)}`;
+const canonical = `https://hieyson.com/proyectos/${slug}`;
+const paragraphs = project.descripcion_full.split('\n\n').filter(Boolean);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: project.titulo,
+  description: project.descripcion,
+  url: canonical,
+  image: project.galeria.slice(0, 3),
+  creator: { '@type': 'Organization', name: 'HieysoN', url: 'https://hieyson.com' },
+};
+---
+
+<BaseLayout
+  title={`${project.titulo} — HieysoN`}
+  description={project.descripcion.slice(0, 155)}
+  lang="es"
+  canonicalURL={canonical}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <Header t={t} />
+
+    <main class="flex-grow pt-36 pb-24">
+      <div class="max-w-6xl mx-auto px-6 lg:px-12">
+        <nav class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-10">
+          <a href="/" class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">Inicio</a>
+          <span>/</span>
+          <a href="/proyectos" class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">Proyectos</a>
+          <span>/</span>
+          <span class="text-light-accent dark:text-white">{project.titulo}</span>
+        </nav>
+
+        <p class="text-[11px] font-mono tracking-[0.25em] uppercase text-light-muted dark:text-dark-muted mb-4">{project.categoria}</p>
+        <h1 class="text-3xl md:text-5xl font-display font-bold uppercase tracking-tight text-light-accent dark:text-white mb-6">{project.titulo}</h1>
+        <p class="text-base md:text-lg text-light-muted dark:text-white/70 font-light leading-relaxed mb-10 max-w-3xl">{project.descripcion}</p>
+
+        <div class="flex flex-wrap items-center gap-4 mb-14">
+          {project.url && (
+            <a href={project.url} target="_blank" rel="noopener" class="no-underline text-xs font-mono uppercase tracking-[0.15em] bg-light-accent text-light-900 dark:bg-white dark:text-black px-8 py-4 hover:opacity-90 transition-opacity">{t['projects.visit']}</a>
+          )}
+          <a href={waLink} target="_blank" rel="noopener" class="no-underline text-xs font-mono uppercase tracking-[0.15em] border border-light-border dark:border-dark-border text-light-accent dark:text-white px-8 py-4 hover:bg-light-accent hover:text-light-900 dark:hover:bg-white dark:hover:text-black transition-all">Quiero uno así</a>
+        </div>
+
+        {project.galeria.length > 0 && (
+          <div class="mb-16">
+            <h2 class="text-xs font-mono tracking-[0.2em] uppercase text-light-muted dark:text-dark-muted mb-8">{t['projects.gallery']}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {project.galeria.map((img, i) => (
+                <div class={`overflow-hidden border border-light-border dark:border-dark-border bg-dark-900 ${i === 0 ? 'md:col-span-2' : ''}`}>
+                  <img src={img} alt={`${project.titulo} — captura ${i + 1}`} class="w-full object-cover hover:scale-[1.02] transition-transform duration-500" loading={i === 0 ? 'eager' : 'lazy'} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {paragraphs.length > 0 && (
+          <div class="max-w-3xl mb-16 space-y-5">
+            {paragraphs.map((p) => (
+              <p class="text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">{p}</p>
+            ))}
+          </div>
+        )}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-20">
+          {project.stack.length > 0 && (
+            <div class="border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-6">
+              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-4">Stack</h3>
+              <div class="flex flex-wrap gap-2">
+                {project.stack.map((s) => (
+                  <span class="text-[11px] font-mono px-2 py-1 border border-light-border dark:border-dark-border text-light-accent dark:text-white">{s}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {project.logros.length > 0 && (
+            <div class="border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-6">
+              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-4">{t['projects.results']}</h3>
+              <ul class="space-y-2">
+                {project.logros.slice(0, 6).map((l) => (
+                  <li class="text-sm text-light-muted dark:text-dark-muted font-light flex gap-2"><span class="text-emerald-500">✓</span>{l}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {project.servicios.length > 0 && (
+            <div class="border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-6">
+              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-4">Servicios</h3>
+              <ul class="space-y-2">
+                {project.servicios.map((s) => (
+                  <li class="text-sm text-light-muted dark:text-dark-muted font-light">— {s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <h2 class="text-xs font-mono tracking-[0.2em] uppercase text-light-muted dark:text-dark-muted mb-8">{t['projects.related']}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-light-border dark:bg-dark-border border border-light-border dark:border-dark-border">
+          {related.map((r) => (
+            <a href={`/proyectos/${r.slug}`} class="no-underline group relative overflow-hidden bg-dark-900 min-h-[220px] flex items-end">
+              {r.cover && <img src={r.cover} alt={r.titulo} class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+              <div class="relative p-6">
+                <p class="text-[10px] font-mono tracking-[0.2em] uppercase text-white/70 mb-1">{r.categoria}</p>
+                <h3 class="font-mono text-sm text-white group-hover:underline">{r.titulo}</h3>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </main>
+
+    <Footer t={t} />
+  </div>
+</BaseLayout>

@@ -23,7 +23,7 @@
 
 ## Fase 4: Proyectos
 - [x] Task 10: Teaser 3 destacados en index (scrim light/dark)
-- [ ] Task 11: `/proyectos` + `/proyectos/[slug]` galería Cloudinary
+- [x] Task 11: `/proyectos` + `/proyectos/[slug]` galería Cloudinary
 
 ## Fase 5: Blog y Noticias (separados)
 - [ ] Task 12: `/blog` + `/blog/[slug]` + RSS (galería 1..N, XSS neutralizado)
