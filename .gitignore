@@ -47,6 +47,9 @@ CLAUDE.md
 # vercel
 .vercel/
 
+# docs locales (guías de deploy, no van al repo)
+docs/
+
 # personal knowledge notes (not part of the site)
 knowledge-general/
 CV-HIEYSON.html
