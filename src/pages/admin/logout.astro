@@ -1,0 +1,9 @@
+---
+export const prerender = false;
+
+import { apiFetch } from '../../lib/admin';
+
+await apiFetch(Astro, '/api/auth/logout', { method: 'POST' }).catch(() => null);
+Astro.cookies.delete('token', { path: '/' });
+return Astro.redirect('/admin/login');
+---

@@ -1,0 +1,63 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { apiFetch, btnCls, requireAdmin } from '../../lib/admin';
+
+const me = await requireAdmin(Astro);
+if (!me) return Astro.redirect('/admin/login');
+
+async function count(path: string): Promise<number> {
+  try {
+    const r = await apiFetch(Astro, path);
+    if (!r.ok) return -1;
+    const j = await r.json();
+    if (Array.isArray(j)) return j.length;
+    if (typeof j?.total === 'number') return j.total;
+    return -1;
+  } catch {
+    return -1;
+  }
+}
+
+const cards = [
+  { href: '/admin/servicios', label: 'Servicios', n: await count('/api/admin/services') },
+  { href: '/admin/proyectos', label: 'Proyectos', n: await count('/api/admin/projects') },
+  { href: '/admin/blog', label: 'Blog', n: await count('/api/admin/posts?type=blog') },
+  { href: '/admin/noticias', label: 'Noticias', n: await count('/api/admin/posts?type=noticia') },
+  { href: '/admin/mensajes', label: 'Mensajes nuevos', n: await count('/api/admin/messages?status=new') },
+  { href: '/admin/testimonios', label: 'Testimonios', n: await count('/api/admin/testimonials') },
+  { href: '/admin/clientes', label: 'Clientes', n: await count('/api/admin/clients') },
+  { href: '/admin/ajustes', label: 'Ajustes', n: null as number | null },
+];
+---
+
+<BaseLayout title="Admin — HieysoN" description="Panel administrador" lang="es" canonicalURL="https://hieyson.com/admin">
+  <div class="min-h-screen max-w-5xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-12">
+      <div>
+        <p class="font-mono text-[10px] tracking-[0.25em] uppercase text-light-muted dark:text-dark-muted mb-2">HieysoN · Admin</p>
+        <h1 class="font-display text-3xl font-bold text-light-accent dark:text-white">Panel</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="font-mono text-xs text-light-muted dark:text-dark-muted">{me.email}</span>
+        <a href="/admin/logout" class={btnCls}>Salir</a>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-light-border dark:bg-dark-border border border-light-border dark:border-dark-border">
+      {cards.map((c) => (
+        <a href={c.href} class="no-underline bg-light-900 dark:bg-dark-900 p-8 hover:bg-light-800 dark:hover:bg-dark-800 transition-colors group">
+          <p class="font-display text-4xl font-bold text-light-accent dark:text-white mb-2">
+            {c.n === null ? '→' : c.n < 0 ? '·' : c.n}
+          </p>
+          <p class="font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted group-hover:text-light-accent dark:group-hover:text-white transition-colors">{c.label}</p>
+        </a>
+      ))}
+    </div>
+
+    <p class="font-mono text-[11px] text-light-muted dark:text-dark-muted mt-8">
+      API: {import.meta.env.API_URL || 'http://localhost:3001'} · <a href="/" class="underline">ver sitio</a>
+    </p>
+  </div>
+</BaseLayout>
