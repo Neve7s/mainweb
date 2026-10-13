@@ -4,6 +4,7 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { checkDb } from './db/client';
 import { adminRoutes } from './routes/admin';
 import { authRoutes } from './routes/auth';
+import { chatRoutes } from './routes/chat';
 import { uploadRoutes } from './routes/upload';
 import { contactRoutes } from './routes/contact';
 import { publicRoutes } from './routes/public';
@@ -35,6 +36,7 @@ app.route('/api', contactRoutes);
 app.route('/api', authRoutes);
 app.route('/api', adminRoutes);
 app.route('/api', uploadRoutes);
+app.route('/api', chatRoutes);
 
 // En dev (driver local) la API sirve los uploads. En prod los sirve Cloudinary.
 if ((process.env.STORAGE_DRIVER || 'local') === 'local') {

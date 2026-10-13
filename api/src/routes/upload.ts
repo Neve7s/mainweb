@@ -3,7 +3,8 @@ import { requireAdmin } from '../lib/auth';
 import { saveUpload, validateUpload } from '../lib/storage';
 
 export const uploadRoutes = new Hono();
-uploadRoutes.use('*', requireAdmin);
+// Mismo motivo que en admin.ts: path explícito para no afectar rutas hermanas.
+uploadRoutes.use('/upload/*', requireAdmin);
 
 uploadRoutes.post('/upload', async (c) => {
   let form: Record<string, string | File>;

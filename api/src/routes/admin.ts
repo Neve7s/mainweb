@@ -16,7 +16,9 @@ import { requireAdmin } from '../lib/auth';
 import { slugify } from '../lib/slug';
 
 export const adminRoutes = new Hono();
-adminRoutes.use('*', requireAdmin);
+// Path explícito (no '*'): el '*' de un sub-app montado con route() alcanzaría
+// a rutas hermanas registradas después (ej. /api/chat). Así solo cubre /api/admin/*.
+adminRoutes.use('/admin/*', requireAdmin);
 
 // ---------- helpers ----------
 function isConflict(e: unknown): boolean {
