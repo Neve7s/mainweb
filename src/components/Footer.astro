@@ -21,7 +21,8 @@ const { contact, social: socialLinks, copyright } = siteData;
       </div>
 
       <div data-animate>
-        <form onsubmit="event.preventDefault();" class="space-y-8">
+        <form id="contact-form" class="space-y-8" novalidate
+          data-success={t['contact.success']} data-error={t['contact.error']} data-sending={t['contact.sending']}>
           <div class="relative">
             <input type="text" id="name"
               class="w-full bg-transparent border-b border-light-border dark:border-dark-border py-4 text-light-accent dark:text-white font-mono text-sm focus:outline-none focus:border-transparent dark:focus:border-transparent transition-colors peer placeholder-transparent"
@@ -46,6 +47,9 @@ const { contact, social: socialLinks, copyright } = siteData;
               class="absolute left-0 top-4 text-light-muted dark:text-dark-muted font-mono text-xs uppercase tracking-[0.1em] transition-all duration-300 peer-focus:-top-2 peer-focus:text-[10px] peer-focus:text-light-accent dark:peer-focus:text-white peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:text-light-accent dark:peer-[:not(:placeholder-shown)]:text-white pointer-events-none">{t['contact.placeholder.msg']}</label>
             <span class="absolute bottom-0 left-0 h-[1px] w-0 bg-light-accent dark:bg-white transition-all duration-500 peer-focus:w-full"></span>
           </div>
+          <!-- Honeypot anti-spam (los humanos no lo ven ni lo llenan) -->
+          <input type="text" id="company" name="company" tabindex="-1" autocomplete="off" aria-hidden="true"
+            class="absolute -left-[9999px] opacity-0 h-0 w-0">
           <div class="relative overflow-hidden w-full">
             <canvas class="spark-btn-canvas absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
             <button type="submit"
@@ -54,6 +58,7 @@ const { contact, social: socialLinks, copyright } = siteData;
               <span>{t['contact.btn']}</span>
             </button>
           </div>
+          <p id="contact-status" class="font-mono text-xs tracking-wider min-h-[1.25rem]" aria-live="polite"></p>
         </form>
       </div>
     </div>
@@ -89,3 +94,53 @@ const { contact, social: socialLinks, copyright } = siteData;
     </div>
   </div>
 </footer>
+
+<script>
+  const contactForm = document.getElementById('contact-form') as HTMLFormElement | null;
+  if (contactForm) {
+    const statusEl = document.getElementById('contact-status');
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const apiBase = import.meta.env.PUBLIC_API_URL || 'http://localhost:3001';
+    const baseCls = 'font-mono text-xs tracking-wider min-h-[1.25rem] ';
+    const setStatus = (key: 'sending' | 'ok' | 'error') => {
+      if (!statusEl) return;
+      const msg =
+        key === 'ok' ? contactForm.dataset.success
+        : key === 'error' ? contactForm.dataset.error
+        : contactForm.dataset.sending;
+      statusEl.textContent = msg || '';
+      statusEl.className = baseCls + (
+        key === 'ok' ? 'text-emerald-600 dark:text-emerald-400'
+        : key === 'error' ? 'text-red-600 dark:text-red-400'
+        : 'text-light-muted dark:text-dark-muted'
+      );
+    };
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: (document.getElementById('name') as HTMLInputElement | null)?.value.trim() || '',
+        email: (document.getElementById('email') as HTMLInputElement | null)?.value.trim() || '',
+        message: (document.getElementById('message') as HTMLTextAreaElement | null)?.value.trim() || '',
+        company: (document.getElementById('company') as HTMLInputElement | null)?.value || '',
+        lang: document.documentElement.lang === 'en' ? 'en' : 'es',
+        source: 'footer',
+      };
+      setStatus('sending');
+      submitBtn?.setAttribute('disabled', '');
+      try {
+        const res = await fetch(`${apiBase}/api/contact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        setStatus('ok');
+        contactForm.reset();
+      } catch {
+        setStatus('error');
+      } finally {
+        submitBtn?.removeAttribute('disabled');
+      }
+    });
+  }
+</script>
