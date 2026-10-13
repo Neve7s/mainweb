@@ -1,16 +1,31 @@
 // Envío de correos vía Resend (API REST, sin SDK).
 // Sin RESEND_API_KEY no rompe nada: registra en el log y devuelve sent:false.
 
-export function defaultFrom(brandName?: string): string {
-  // Override explícito si algún día lo necesitas; si no, se arma solo.
-  if (process.env.RESEND_FROM) return process.env.RESEND_FROM;
+const EMAIL_RE = /^[^<>"'\r\n]+ <[^<>\s]+@[^<>\s]+>$/;
+
+function cleanName(s?: string): string {
+  const v = (s || '').replace(/[<>"'\r\n,;:\\]/g, '').trim().slice(0, 60);
+  return v || 'HieysoN';
+}
+
+function cleanHost(): string {
   let host = 'hieyson.com';
   try {
-    host = new URL(process.env.APP_URL || 'http://localhost:4321').hostname;
+    host = new URL(process.env.APP_URL || 'http://localhost:4321').hostname.toLowerCase();
   } catch {
     /* usa el default */
   }
-  return `${brandName || 'HieysoN'} <no-reply@${host}>`;
+  return /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/.test(host) ? host : 'hieyson.com';
+}
+
+export function defaultFrom(brandName?: string): string {
+  // Override explícito solo si tiene formato válido; si no, automático + aviso.
+  const override = (process.env.RESEND_FROM || '').trim();
+  if (override) {
+    if (EMAIL_RE.test(override)) return override;
+    console.warn('[resend] RESEND_FROM con formato inválido, uso remitente automático');
+  }
+  return `${cleanName(brandName)} <no-reply@${cleanHost()}>`;
 }
 
 export async function sendEmail(
@@ -33,7 +48,8 @@ export async function sendEmail(
   });
   if (!res.ok) {
     const t = await res.text().catch(() => '');
-    console.error('[resend] error', res.status, t.slice(0, 200));
+    // Se loguea el remitente usado (sin secretos) para diagnosticar 4xx.
+    console.error('[resend] error', res.status, t.slice(0, 200), 'from:', sender);
     return { sent: false };
   }
   const j = (await res.json()) as { id?: string };
