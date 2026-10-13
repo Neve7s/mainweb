@@ -11,7 +11,7 @@
 - [x] Task 4: Schema 8 tablas (incl. `contact_messages` vacía) + seed idempotente
 - [x] Task 5: Endpoints lectura (`/api/blog`, `/api/noticias` separados) + tests verdes
 - [x] Task 5b: `POST /api/contact` (Zod + honeypot + rate-limit) + Footer cableado
-- [ ] Task 6: Auth + CRUD + upload dual (local `uploads/<tipo>/` | Cloudinary) + tests verdes
+- [x] Task 6: Auth + CRUD + upload dual (local `uploads/<tipo>/` | Cloudinary) + tests verdes
 - [ ] Task 6b: `POST /api/chat` NVIDIA desde Postgres + front misma-origin (Worker deprecado)
 
 ## Fase 2: Integración Astro
