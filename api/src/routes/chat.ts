@@ -38,7 +38,10 @@ async function callNvidia(
   messages: Array<{ role: string; content: string }>,
 ): Promise<NvidiaResult> {
   const apiKey = process.env.NVIDIA_API_KEY;
-  if (!apiKey) return { ok: false, status: 500, error: 'Missing NVIDIA_API_KEY' };
+  if (!apiKey) {
+    console.error('[chat] sin NVIDIA_API_KEY en el entorno');
+    return { ok: false, status: 500, error: 'Missing NVIDIA_API_KEY' };
+  }
   const models = modelList();
   for (const model of models) {
     const isLast = model === models[models.length - 1];
@@ -55,10 +58,12 @@ async function callNvidia(
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
           const body = await res.text().catch(() => '');
+          console.error('[chat] nvidia auth', model, res.status, body.slice(0, 160));
           return { ok: false, status: res.status, error: body.slice(0, 300) };
         }
         if (!isLast) continue;
         const body = await res.text().catch(() => '');
+        console.error('[chat] nvidia http', model, res.status, body.slice(0, 160));
         return { ok: false, status: res.status, error: body.slice(0, 300) };
       }
       const data = (await res.json()) as any;
@@ -66,8 +71,10 @@ async function callNvidia(
       if (!reply) return { ok: false, status: 502, error: 'Empty response from model' };
       return { ok: true, reply };
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Network error';
+      console.error('[chat] nvidia red', model, msg.slice(0, 160));
       if (!isLast) continue;
-      return { ok: false, status: 502, error: err instanceof Error ? err.message : 'Network error' };
+      return { ok: false, status: 502, error: msg };
     }
   }
   return { ok: false, status: 429, error: 'All models are out of quota. Try again in a moment.' };
