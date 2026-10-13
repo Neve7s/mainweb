@@ -1,0 +1,49 @@
+---
+export const prerender = false;
+
+import AdminForm from '../../../components/AdminForm.astro';
+import AdminLayout from '../../../components/AdminLayout.astro';
+import { apiFetch, requireAdmin, uploadViaApi } from '../../../lib/admin';
+import { ENTITIES, formToBody, rowToForm } from '../../../lib/admin-entities';
+
+const { entity, id } = Astro.params;
+const cfg = entity ? ENTITIES[entity] : undefined;
+if (!cfg || !id) return Astro.redirect('/admin');
+const me = await requireAdmin(Astro);
+if (!me) return Astro.redirect('/admin/login');
+
+const listPath = cfg.apiBase + (cfg.fixed?.type ? `?type=${cfg.fixed.type}&limit=200` : '');
+const lr = await apiFetch(Astro, listPath);
+const list: any[] = lr.ok ? await lr.json() : [];
+const row = list.find((x) => String(x.id) === id);
+if (!row) return Astro.redirect(`/admin/${cfg.key}`);
+
+let error = '';
+if (Astro.request.method === 'POST') {
+  try {
+    const { body, error: err } = await formToBody(Astro, cfg, (tipo, file) =>
+      uploadViaApi(Astro, tipo, file),
+    );
+    if (err) {
+      error = err;
+    } else {
+      const r = await apiFetch(Astro, `${cfg.apiBase}/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (r.ok) return Astro.redirect(`/admin/${cfg.key}`);
+      const j = await r.json().catch(() => ({}));
+      error = (j as any).error ?? `La API respondió ${r.status}`;
+    }
+  } catch (e) {
+    error = e instanceof Error ? e.message : 'Error al guardar';
+  }
+}
+
+const values = rowToForm(cfg, row);
+---
+
+<AdminLayout title={`Editar ${cfg.singular}`} email={me.email} backHref={`/admin/${cfg.key}`} backLabel={cfg.title}>
+  <AdminForm fields={cfg.fields} values={values} submitLabel="Guardar cambios" error={error} />
+</AdminLayout>

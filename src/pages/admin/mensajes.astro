@@ -1,0 +1,99 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../components/AdminLayout.astro';
+import { apiFetch, btnCls, requireAdmin } from '../../lib/admin';
+
+const me = await requireAdmin(Astro);
+if (!me) return Astro.redirect('/admin/login');
+
+const statuses = ['all', 'new', 'read', 'replied', 'archived'] as const;
+const filter = Astro.url.searchParams.get('status') ?? 'new';
+const validFilter = (statuses as readonly string[]).includes(filter) ? filter : 'new';
+
+if (Astro.request.method === 'POST') {
+  const fd = await Astro.request.formData();
+  const action = String(fd.get('_action') ?? '');
+  const id = String(fd.get('id') ?? '');
+  if (id && action === 'status') {
+    await apiFetch(Astro, `/api/admin/messages/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: String(fd.get('to') ?? 'read') }),
+    });
+  } else if (id && action === 'delete') {
+    await apiFetch(Astro, `/api/admin/messages/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  }
+  return Astro.redirect(`/admin/mensajes?status=${validFilter}`);
+}
+
+const r = await apiFetch(
+  Astro,
+  '/api/admin/messages?limit=200' + (validFilter === 'all' ? '' : `&status=${validFilter}`),
+);
+const messages: any[] = r.ok ? await r.json() : [];
+
+const tabCls = (active: boolean) =>
+  `font-mono text-[11px] uppercase tracking-[0.15em] px-4 py-2 border transition-all no-underline ${active
+    ? 'bg-light-accent text-light-900 dark:bg-white dark:text-black border-transparent'
+    : 'text-light-muted dark:text-dark-muted border-light-border dark:border-dark-border hover:text-light-accent dark:hover:text-white'}`;
+
+const statusBadge: Record<string, string> = {
+  new: 'text-emerald-600 dark:text-emerald-400 border-emerald-500/40',
+  read: 'text-light-muted dark:text-dark-muted border-light-border dark:border-dark-border',
+  replied: 'text-cyan-600 dark:text-cyan-400 border-cyan-500/40',
+  archived: 'text-light-muted dark:text-dark-muted border-light-border dark:border-dark-border opacity-60',
+};
+---
+
+<AdminLayout title="Mensajes" email={me.email}>
+  <div class="flex flex-wrap gap-2 mb-8">
+    {statuses.map((s) => (
+      <a href={s === 'all' ? '/admin/mensajes?status=all' : `/admin/mensajes?status=${s}`} class={tabCls(validFilter === s)}>
+        {s === 'all' ? 'Todas' : s === 'new' ? 'Nuevos' : s === 'read' ? 'Leídos' : s === 'replied' ? 'Respondidos' : 'Archivados'}
+      </a>
+    ))}
+  </div>
+
+  <div class="space-y-4">
+    {messages.map((m) => (
+      <div class="border border-light-border dark:border-dark-border bg-light-900 dark:bg-dark-900 p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div class="flex items-center gap-3">
+            <span class={`font-mono text-[10px] uppercase tracking-wider px-2 py-1 border ${statusBadge[m.status] ?? statusBadge['read']}`}>
+              {m.status}
+            </span>
+            <span class="font-mono text-sm text-light-accent dark:text-white">{m.name}</span>
+            <a href={`mailto:${m.email}`} class="font-mono text-xs text-light-muted dark:text-dark-muted hover:underline">{m.email}</a>
+          </div>
+          <span class="font-mono text-[11px] text-light-muted dark:text-dark-muted">
+            {m.created_at ? new Date(m.created_at).toLocaleString('es-PE') : ''}
+          </span>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-300 font-light leading-relaxed mb-4 whitespace-pre-wrap">{m.message}</p>
+        <div class="flex flex-wrap gap-2">
+          {(['read', 'replied', 'archived'] as const).map((s) => (
+            m.status !== s && (
+              <form method="POST" class="inline">
+                <input type="hidden" name="_action" value="status" />
+                <input type="hidden" name="id" value={m.id} />
+                <input type="hidden" name="to" value={s} />
+                <button type="submit" class={`${btnCls} !px-3 !py-1.5 !text-[10px]`}>
+                  {s === 'read' ? 'Leído' : s === 'replied' ? 'Respondido' : 'Archivar'}
+                </button>
+              </form>
+            )
+          ))}
+          <form method="POST" class="inline" onsubmit="return confirm('¿Borrar mensaje?')">
+            <input type="hidden" name="_action" value="delete" />
+            <input type="hidden" name="id" value={m.id} />
+            <button type="submit" class="!px-3 !py-1.5 !text-[10px] inline-flex items-center font-mono uppercase tracking-wider border border-red-500/50 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white transition-all">Borrar</button>
+          </form>
+        </div>
+      </div>
+    ))}
+    {messages.length === 0 && (
+      <p class="font-mono text-xs text-light-muted dark:text-dark-muted py-10 text-center">Sin mensajes en este estado.</p>
+    )}
+  </div>
+</AdminLayout>

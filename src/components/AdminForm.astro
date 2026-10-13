@@ -1,0 +1,141 @@
+---
+import type { Field } from '../lib/admin-entities';
+import { btnPrimaryCls, inputCls } from '../lib/admin';
+
+interface Props {
+  fields: Field[];
+  values: Record<string, any>;
+  submitLabel: string;
+  error?: string;
+}
+
+const { fields, values, submitLabel, error } = Astro.props;
+const val = (name: string) => values[name] ?? '';
+
+function galleryItems(name: string): string[] {
+  try {
+    const arr = JSON.parse(String(values[name] ?? '[]'));
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+---
+
+{error && (
+  <p class="font-mono text-sm text-red-600 dark:text-red-400 border border-red-500/40 bg-red-500/5 px-4 py-3 mb-6">{error}</p>
+)}
+
+<form method="POST" enctype="multipart/form-data" class="space-y-6 max-w-3xl">
+  {fields.map((f) => (
+    <div>
+      <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for={`f-${f.name}`}>
+        {f.label}{f.required ? ' *' : ''}
+      </label>
+
+      {f.type === 'text' && (
+        <input id={`f-${f.name}`} name={f.name} type="text" value={val(f.name)} required={f.required} placeholder={f.placeholder ?? ''}
+          class={inputCls} />
+      )}
+
+      {f.type === 'number' && (
+        <input id={`f-${f.name}`} name={f.name} type="number" value={val(f.name)}
+          class={`${inputCls} max-w-40`} />
+      )}
+
+      {f.type === 'textarea' && (
+        <textarea id={`f-${f.name}`} name={f.name} rows="3" required={f.required} placeholder={f.placeholder ?? ''}
+          class={inputCls}>{val(f.name)}</textarea>
+      )}
+
+      {f.type === 'tall' && (
+        <textarea id={`f-${f.name}`} name={f.name} rows="12" required={f.required} placeholder={f.placeholder ?? ''}
+          class={`${inputCls} font-mono !text-[13px] leading-relaxed`}>{val(f.name)}</textarea>
+      )}
+
+      {f.type === 'array' && (
+        <textarea id={`f-${f.name}`} name={f.name} rows="4" placeholder="uno por línea"
+          class={`${inputCls} font-mono !text-[13px]`}>{val(f.name)}</textarea>
+      )}
+
+      {f.type === 'json' && (
+        <>
+          <textarea id={`f-${f.name}`} name={f.name} rows="6" spellcheck="false"
+            class={`${inputCls} font-mono !text-[13px]`}>{val(f.name)}</textarea>
+          {f.help && <p class="font-mono text-[11px] text-light-muted dark:text-dark-muted mt-2">{f.help}</p>}
+        </>
+      )}
+
+      {f.type === 'checkbox' && (
+        <label class="inline-flex items-center gap-3 cursor-pointer">
+          <input name={f.name} type="checkbox" checked={Boolean(values[f.name])} class="w-5 h-5 accent-emerald-600" />
+          <span class="font-mono text-xs text-light-accent dark:text-white">Sí</span>
+        </label>
+      )}
+
+      {f.type === 'cover' && (
+        <div class="space-y-3">
+          {val(f.name) && (
+            <img src={val(f.name)} alt="portada actual" class="max-h-48 border border-light-border dark:border-dark-border" />
+          )}
+          <input id={`f-${f.name}`} name={f.name} type="text" value={val(f.name)} placeholder="https://… o sube un archivo"
+            class={inputCls} />
+          <input name={`__file_${f.name}`} type="file" accept=".jpg,.jpeg,.png,.webp"
+            class="font-mono text-xs text-light-muted dark:text-dark-muted" />
+        </div>
+      )}
+
+      {f.type === 'gallery' && (
+        <div class="space-y-3" data-gallery={f.name}>
+          <input type="hidden" name={f.name} value={val(f.name) || '[]'} data-role="urls" />
+          <input type="hidden" name={`${f.name}__ids`} value={val(`${f.name}__ids`) || '[]'} data-role="ids" />
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" data-role="items">
+            {galleryItems(f.name).map((url, i) => (
+              <div class="relative group border border-light-border dark:border-dark-border" data-idx={i}>
+                <img src={url} alt={`imagen ${i + 1}`} class="w-full h-24 object-cover" loading="lazy" />
+                <button type="button" data-remove class="absolute top-1 right-1 w-7 h-7 bg-black/70 text-white font-mono text-xs hover:bg-red-600 transition-colors" aria-label="Quitar">×</button>
+              </div>
+            ))}
+          </div>
+          <input name={`__files_${f.name}`} type="file" accept=".jpg,.jpeg,.png,.webp" multiple
+            class="font-mono text-xs text-light-muted dark:text-dark-muted" />
+        </div>
+      )}
+    </div>
+  ))}
+
+  <div class="pt-2">
+    <button type="submit" class={btnPrimaryCls}>{submitLabel}</button>
+  </div>
+</form>
+
+<script>
+  // Quitar imágenes de galería antes de guardar (filtra los hidden JSON).
+  document.querySelectorAll('[data-gallery]').forEach((wrap) => {
+    const urlsInput = wrap.querySelector('[data-role="urls"]');
+    const idsInput = wrap.querySelector('[data-role="ids"]');
+    const items = wrap.querySelector('[data-role="items"]');
+    const parse = (el) => {
+      try {
+        const v = JSON.parse(el?.value || '[]');
+        return Array.isArray(v) ? v : [];
+      } catch {
+        return [];
+      }
+    };
+    items?.querySelectorAll('[data-remove]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('[data-idx]');
+        const idx = Number(item?.getAttribute('data-idx'));
+        const urls = parse(urlsInput);
+        const ids = parse(idsInput);
+        urls.splice(idx, 1);
+        ids.splice(idx, 1);
+        if (urlsInput) urlsInput.value = JSON.stringify(urls);
+        if (idsInput) idsInput.value = JSON.stringify(ids);
+        item?.remove();
+        items.querySelectorAll('[data-idx]').forEach((el, i) => el.setAttribute('data-idx', String(i)));
+      });
+    });
+  });
+</script>

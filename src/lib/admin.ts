@@ -33,6 +33,20 @@ export function setTokenCookie(Astro: APIContext, token: string) {
   });
 }
 
+// Sube un archivo a la API (multipart) reenviando la sesión. Retorna {url, public_id}.
+export async function uploadViaApi(
+  Astro: APIContext,
+  tipo: string,
+  file: File,
+): Promise<{ url: string; public_id: string | null }> {
+  const form = new FormData();
+  form.append('file', file, (file as any).name ?? 'upload');
+  form.append('tipo', tipo);
+  const r = await apiFetch(Astro, '/api/upload', { method: 'POST', body: form });
+  if (r.status !== 201) throw new Error(`upload falló (${r.status})`);
+  return (await r.json()) as { url: string; public_id: string | null };
+}
+
 export const inputCls =
   'w-full bg-transparent border border-light-border dark:border-dark-border px-4 py-3 text-sm font-mono text-light-accent dark:text-white placeholder:text-light-muted dark:placeholder:text-dark-muted focus:outline-none focus:border-light-accent dark:focus:border-white transition-colors';
 

@@ -1,0 +1,41 @@
+---
+export const prerender = false;
+
+import AdminForm from '../../../components/AdminForm.astro';
+import AdminLayout from '../../../components/AdminLayout.astro';
+import { apiFetch, requireAdmin, uploadViaApi } from '../../../lib/admin';
+import { ENTITIES, formToBody } from '../../../lib/admin-entities';
+
+const { entity } = Astro.params;
+const cfg = entity ? ENTITIES[entity] : undefined;
+if (!cfg) return Astro.redirect('/admin');
+const me = await requireAdmin(Astro);
+if (!me) return Astro.redirect('/admin/login');
+
+let error = '';
+if (Astro.request.method === 'POST') {
+  try {
+    const { body, error: err } = await formToBody(Astro, cfg, (tipo, file) =>
+      uploadViaApi(Astro, tipo, file),
+    );
+    if (err) {
+      error = err;
+    } else {
+      const r = await apiFetch(Astro, cfg.apiBase, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (r.status === 201) return Astro.redirect(`/admin/${cfg.key}`);
+      const j = await r.json().catch(() => ({}));
+      error = (j as any).error ?? `La API respondió ${r.status}`;
+    }
+  } catch (e) {
+    error = e instanceof Error ? e.message : 'Error al guardar';
+  }
+}
+---
+
+<AdminLayout title={`Nuevo ${cfg.singular}`} email={me.email} backHref={`/admin/${cfg.key}`} backLabel={cfg.title}>
+  <AdminForm fields={cfg.fields} values={{}} submitLabel={`Crear ${cfg.singular}`} error={error} />
+</AdminLayout>

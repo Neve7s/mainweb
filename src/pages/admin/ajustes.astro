@@ -1,0 +1,118 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../components/AdminLayout.astro';
+import { apiFetch, btnPrimaryCls, inputCls, requireAdmin } from '../../lib/admin';
+
+const me = await requireAdmin(Astro);
+if (!me) return Astro.redirect('/admin/login');
+
+let saved = false;
+let error = '';
+if (Astro.request.method === 'POST') {
+  try {
+    const fd = await Astro.request.formData();
+    const contact = {
+      email: String(fd.get('contact.email') ?? ''),
+      phone: String(fd.get('contact.phone') ?? ''),
+      phoneDisplay: String(fd.get('contact.phoneDisplay') ?? ''),
+      whatsappUrl: String(fd.get('contact.whatsappUrl') ?? ''),
+    };
+    const hero = {
+      badge_es: String(fd.get('hero.badge_es') ?? ''),
+      badge_en: String(fd.get('hero.badge_en') ?? ''),
+      title_es: String(fd.get('hero.title_es') ?? ''),
+      title_en: String(fd.get('hero.title_en') ?? ''),
+      subtitle_es: String(fd.get('hero.subtitle_es') ?? ''),
+      subtitle_en: String(fd.get('hero.subtitle_en') ?? ''),
+    };
+    // Solo guarda hero si al menos un campo tiene contenido.
+    const heroFilled = Object.values(hero).some((v) => v.trim() !== '');
+    const puts: Array<[string, unknown]> = [['contact', contact]];
+    if (heroFilled) puts.push(['hero', hero]);
+    for (const [key, value] of puts) {
+      const r = await apiFetch(Astro, `/api/admin/settings/${key}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value }),
+      });
+      if (!r.ok) throw new Error(`Ajuste ${key}: ${r.status}`);
+    }
+    saved = true;
+  } catch (e) {
+    error = e instanceof Error ? e.message : 'Error al guardar';
+  }
+}
+
+const r = await apiFetch(Astro, '/api/admin/settings');
+const all: Record<string, any> = r.ok ? await r.json() : {};
+const contact = (all['contact'] ?? {}) as Record<string, string>;
+const hero = (all['hero'] ?? {}) as Record<string, string>;
+const c = (k: string) => contact[k] ?? '';
+const h = (k: string) => hero[k] ?? '';
+---
+
+<AdminLayout title="Ajustes" email={me.email}>
+  {saved && (
+    <p class="font-mono text-sm text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 bg-emerald-500/5 px-4 py-3 mb-6">Guardado. El sitio usa los nuevos valores al instante.</p>
+  )}
+  {error && (
+    <p class="font-mono text-sm text-red-600 dark:text-red-400 border border-red-500/40 bg-red-500/5 px-4 py-3 mb-6">{error}</p>
+  )}
+
+  <form method="POST" class="space-y-10 max-w-3xl">
+    <div>
+      <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-4">Contacto</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-email">Email</label>
+          <input id="c-email" name="contact.email" type="email" value={c('email')} class={inputCls} />
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-phone">Teléfono (solo dígitos)</label>
+          <input id="c-phone" name="contact.phone" type="text" value={c('phone')} class={inputCls} />
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-phoned">Teléfono visible</label>
+          <input id="c-phoned" name="contact.phoneDisplay" type="text" value={c('phoneDisplay')} class={inputCls} />
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="c-wa">WhatsApp URL</label>
+          <input id="c-wa" name="contact.whatsappUrl" type="text" value={c('whatsappUrl')} class={inputCls} />
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-light-muted dark:text-dark-muted mb-2">Hero (vacío = usa los textos por defecto)</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-be">Insignia ES</label>
+          <input id="h-be" name="hero.badge_es" type="text" value={h('badge_es')} class={inputCls} />
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-bn">Insignia EN</label>
+          <input id="h-bn" name="hero.badge_en" type="text" value={h('badge_en')} class={inputCls} />
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-te">Título ES</label>
+          <input id="h-te" name="hero.title_es" type="text" value={h('title_es')} class={inputCls} />
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-tn">Título EN</label>
+          <input id="h-tn" name="hero.title_en" type="text" value={h('title_en')} class={inputCls} />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-se">Subtítulo ES</label>
+          <textarea id="h-se" name="hero.subtitle_es" rows="2" class={inputCls}>{h('subtitle_es')}</textarea>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block font-mono text-[11px] uppercase tracking-[0.15em] text-light-muted dark:text-dark-muted mb-2" for="h-sn">Subtítulo EN</label>
+          <textarea id="h-sn" name="hero.subtitle_en" rows="2" class={inputCls}>{h('subtitle_en')}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class={btnPrimaryCls}>Guardar ajustes</button>
+  </form>
+</AdminLayout>

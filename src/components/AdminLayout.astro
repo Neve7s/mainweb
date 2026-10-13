@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { btnCls, requireAdmin } from '../lib/admin';
+
+interface Props {
+  title: string;
+  email?: string;
+  backHref?: string;
+  backLabel?: string;
+}
+
+const { title, email, backHref, backLabel } = Astro.props;
+const me = email !== undefined ? { email } : await requireAdmin(Astro);
+if (!me) return Astro.redirect('/admin/login');
+---
+
+<BaseLayout title={`${title} — Admin HieysoN`} description="Panel administrador" lang="es" canonicalURL="https://hieyson.com/admin">
+  <div class="min-h-screen max-w-6xl mx-auto px-6 py-10">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-10">
+      <div>
+        <p class="font-mono text-[10px] tracking-[0.25em] uppercase text-light-muted dark:text-dark-muted mb-2">
+          <a href="/admin" class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">Admin</a>
+          {backHref && (
+            <>
+              <span> / </span>
+              <a href={backHref} class="no-underline hover:text-light-accent dark:hover:text-white transition-colors">{backLabel}</a>
+            </>
+          )}
+        </p>
+        <h1 class="font-display text-3xl font-bold text-light-accent dark:text-white">{title}</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="font-mono text-xs text-light-muted dark:text-dark-muted">{me.email}</span>
+        <a href="/admin/logout" class={btnCls}>Salir</a>
+      </div>
+    </div>
+    <slot />
+  </div>
+</BaseLayout>
