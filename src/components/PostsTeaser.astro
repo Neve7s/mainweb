@@ -49,7 +49,7 @@ if (posts.length === 0) return null;
     const lang = sec.getAttribute('data-lang') === 'en' ? 'en' : 'es';
     const grid = sec.querySelector('[data-teaser-grid]');
     if (!API_URL || !base || !grid) return;
-    const type = base.includes('blog') ? 'blog' : 'noticia';
+    const type = base.includes('blog') ? 'blog' : 'noticias';
     const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     try {
       const res = await fetch(`${API_URL}/api/${type}?lang=${lang}&limit=3`, { headers: { Accept: 'application/json' } });
